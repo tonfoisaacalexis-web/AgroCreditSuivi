@@ -1,5 +1,7 @@
-const serverUrl = "https://agrocreditsuivi.onrender.com/admin";
+// 🔥 L'adresse de l'API principale doit s'arrêter juste après .com :
+const serverUrl = "https://agrocreditsuivi.onrender.com";
 
+// 1. Charger la liste des clients depuis le serveur Render
 async function chargerClients() {
     const tbody = document.getElementById('table-clients-body');
     try {
@@ -34,6 +36,7 @@ async function chargerClients() {
     }
 }
 
+// 2. Transmettre l'inscription d'un nouvel agriculteur avec ses garanties d'octroi
 async function enregistrerAgriculteur() {
     const nameInput = document.getElementById('reg-name');
     const emailInput = document.getElementById('reg-email');
@@ -73,6 +76,7 @@ async function enregistrerAgriculteur() {
     }
 }
 
+// 3. Générer le canevas d'évaluation de projet de levier pour la banque
 async function analyserProjet(clientId) {
     const contentBox = document.getElementById('evaluation-content');
     contentBox.innerHTML = "<p style='font-style:italic;'>Analyse des risques en cours...</p>";
