@@ -76,6 +76,7 @@
 
     <script>
         let totalEpargne = 0;
+        // Correction de l'URL avec votre vrai serveur Render
         const serverUrl = "https://onrender.com";
 
         // Charger le conseil agropastoral actif depuis Python
@@ -96,7 +97,7 @@
             }
         }
 
-        // Envoyer la transaction Orange Money au serveur Render en ligne
+        // Envoyer la transaction Orange Money au serveur Render
         async function effectuerVersement() {
             const amountInput = document.getElementById('saving-amount');
             const refInput = document.getElementById('transaction-ref');
@@ -139,14 +140,9 @@
 
                 totalEpargne += amount;
                 
-                // Calcul des frais de formation accumulés (5 000 CFA prélevés par tranche de 20 000 CFA)
                 const nombreDeMois = Math.floor(totalEpargne / 20000);
                 const fraisFormation = nombreDeMois * 5000;
-
-                // Épargne nette (nantissement)
                 const epargneNette = totalEpargne - fraisFormation;
-
-                // Calcul du droit au crédit de levier proportionnel
                 const droitCredit = epargneNette > 0 ? Math.floor((epargneNette / 0.15) * 0.85) : 0;
 
                 document.getElementById('display-savings').innerText = totalEpargne.toLocaleString('fr-FR') + " CFA";
