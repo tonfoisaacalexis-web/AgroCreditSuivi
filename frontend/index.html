@@ -4,13 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgroCrédit Suivi - Espace Client</title>
-    <!-- Remplacer les anciennes lignes de chargement par celles-ci : -->
-    <link rel="stylesheet" href="/static/style.css">
-    <script src="/static/index.js" defer></script>
+    <style>
+        body { font-family: sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 0; }
+        nav { background-color: #15803d; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        main { max-w: 1000px; margin: 20px auto; padding: 0 20px; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; margin-bottom: 20px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .box-savings { background-color: #f8fafc; padding: 15px; border-radius: 8px; }
+        .box-credit { background-color: #f0fdf4; padding: 15px; border-radius: 8px; color: #166534; }
+        .btn { width: 100%; background-color: #f97316; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn:hover { background-color: #ea580c; }
+        input { width: 100%; padding: 10px; margin: 8px 0 15px 0; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
+        .error { color: #b91c1c; background-color: #fef2f2; padding: 10px; border-radius: 8px; font-size: 13px; display: none; margin-bottom: 15px; }
+        .tip-box { background-color: #fefaf0; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 0 8px 8px 0; color: #78350f; font-size: 13px; }
+    </style>
 </head>
 <body>
 
-    <nav style="background-color: #15803d;">
+    <nav>
         <div>
             <h1 style="margin: 0; font-size: 20px;">AgroCrédit Suivi</h1>
             <span style="font-size: 12px; opacity: 0.8;">Pilote d'Épargne Agropastorale — Ambam</span>
@@ -18,9 +29,9 @@
         <span style="background-color: #f97316; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; color: white;">Mode Orange Money</span>
     </nav>
 
-    <main style="grid-template-columns: 2fr 1fr;">
+    <main>
         <div>
-            <!-- Tableau de bord -->
+            <!-- Tableau de bord financier -->
             <div class="card">
                 <h2 style="font-size: 14px; color: #64748b; margin-top: 0;">📈 Point de situation financière</h2>
                 <div class="grid-2">
@@ -35,7 +46,7 @@
                 </div>
             </div>
 
-            <!-- Formulaire de dépôt -->
+            <!-- Formulaire d'enregistrement -->
             <div class="card">
                 <h2 style="font-size: 16px; margin-top: 0;">💰 Enregistrer un versement mensuel</h2>
                 <p style="font-size: 12px; color: #64748b;">Entrez le montant réglementaire d'épargne mensuel (Minimum 20 000 CFA).</p>
@@ -48,12 +59,12 @@
                 <label style="font-size: 12px; font-weight: bold;">Numéro de transaction Orange Money</label>
                 <input type="text" id="transaction-ref" placeholder="Ex: TXN987654321" style="text-transform: uppercase;">
                 
-                <button onclick="effectuerVersement()" class="btn" style="background-color: #f97316;">Confirmer le dépôt Orange Money</button>
+                <button onclick="effectuerVersement()" class="btn">Confirmer le dépôt Orange Money</button>
             </div>
         </div>
 
-        <!-- Accompagnement technique -->
         <div>
+            <!-- Bloc Conseil Agropastoral -->
             <div class="card">
                 <h2 style="font-size: 14px; color: #64748b; margin-top: 0;">🚜 Conseil Agropastoral Actif</h2>
                 <div id="agro-tips-box">
@@ -63,5 +74,96 @@
         </div>
     </main>
 
+    <script>
+        let totalEpargne = 0;
+        const serverUrl = "https://onrender.com";
+
+        // Charger le conseil agropastoral actif depuis Python
+        async function chargerConseilAgro() {
+            const tipsBox = document.getElementById('agro-tips-box');
+            try {
+                const response = await fetch(serverUrl + "/api/tips/elevage");
+                const data = await response.json();
+                
+                tipsBox.innerHTML = `
+                    <div class="tip-box">
+                        <strong style="display: block; margin-bottom: 5px;">${data.title}</strong>
+                        ${data.content}
+                    </div>
+                `;
+            } catch (error) {
+                tipsBox.innerHTML = '<p style="font-size: 12px; color: #b91c1c; font-weight: bold;">⚠️ Le moteur en ligne ne répond pas. Vérifiez le statut Render.</p>';
+            }
+        }
+
+        // Envoyer la transaction Orange Money au serveur Render en ligne
+        async function effectuerVersement() {
+            const amountInput = document.getElementById('saving-amount');
+            const refInput = document.getElementById('transaction-ref');
+            const errorBox = document.getElementById('error-message');
+            
+            const amount = parseInt(amountInput.value);
+            const ref = refInput.value.trim();
+
+            if (isNaN(amount) || amount < 20000) {
+                errorBox.innerText = "⚠️ Règle AgroCrédit : Le montant minimum d'épargne mensuel réglementaire est de 20 000 CFA.";
+                errorBox.style.display = "block";
+                return;
+            }
+
+            if (ref === "") {
+                errorBox.innerText = "⚠️ Référence requise : Entrez le code SMS Orange Money.";
+                errorBox.style.display = "block";
+                return;
+            }
+
+            try {
+                errorBox.style.display = "none";
+                const testUserId = "1"; 
+
+                const response = await fetch(serverUrl + "/api/save/orange", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        user_id: testUserId,
+                        amount: amount, 
+                        transaction_ref: ref 
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.detail || "Erreur de validation du serveur.");
+                }
+
+                totalEpargne += amount;
+                
+                // Calcul des frais de formation accumulés (5 000 CFA prélevés par tranche de 20 000 CFA)
+                const nombreDeMois = Math.floor(totalEpargne / 20000);
+                const fraisFormation = nombreDeMois * 5000;
+
+                // Épargne nette (nantissement)
+                const epargneNette = totalEpargne - fraisFormation;
+
+                // Calcul du droit au crédit de levier proportionnel
+                const droitCredit = epargneNette > 0 ? Math.floor((epargneNette / 0.15) * 0.85) : 0;
+
+                document.getElementById('display-savings').innerText = totalEpargne.toLocaleString('fr-FR') + " CFA";
+                document.getElementById('display-credit').innerText = droitCredit.toLocaleString('fr-FR') + " CFA";
+
+                amountInput.value = "";
+                refInput.value = "";
+
+                alert("✅ Succès ! Dépôt Orange Money validé et enregistré sur le serveur Render.");
+
+            } catch (error) {
+                errorBox.innerText = "❌ Échec : " + error.message;
+                errorBox.style.display = "block";
+            }
+        }
+
+        window.onload = chargerConseilAgro;
+    </script>
 </body>
 </html>
