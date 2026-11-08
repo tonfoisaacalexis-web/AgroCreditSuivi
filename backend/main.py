@@ -1,55 +1,52 @@
+import os
 from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 app = FastAPI(title="AgroCrédit Suivi")
 
-# Autoriser la communication locale avec le fichier HTML
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # Base de données temporaire en mémoire locale
 base_donnees_epargne = []
 
-# Modèle de validation pour la transaction Orange Money
 class DépôtOrangeMoney(BaseModel):
     amount: float
     transaction_ref: str
 
-@app.get("/")
-def home():
-    return {"status": "Opérationnel", "service": "AgroCrédit Suivi local"}
+# Définition des chemins vers vos fichiers HTML
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PARENT_DIR = os.path.dirname(CURRENT_DIR)
+FRONTEND_DIR = os.path.join(PARENT_DIR, "frontend")
 
-# 🚜 Route pour envoyer le conseil agropastoral
+# 🌐 1. ADRESSE CLIENT : Accessible sur http://127.0.0
+@app.get("/", response_class=HTMLResponse)
+def lire_espace_client():
+    with open(os.path.join(FRONTEND_DIR, "index.html"), "r", encoding="utf-8") as f:
+        return f.read()
+
+# 🌐 2. ADRESSE BANQUE : Accessible sur http://127.0.0admin
+@app.get("/admin", response_class=HTMLResponse)
+def lire_espace_banque():
+    with open(os.path.join(FRONTEND_DIR, "admin.html"), "r", encoding="utf-8") as f:
+        return f.read()
+
+# --- CONFIGURATION DES COMMUNICATIONS ---
+
 @app.get("/api/tips/elevage")
 def obtenir_conseil():
     return {
         "title": "🌡️ Gestion thermique du poulailler à Ambam",
-        "content": "Pendant la saison des pluies dans la Vallée-du-Ntem, préchauffez le poulailler 24h avant l'arrivée des poussins. Utilisez des lampes chauffantes pour maintenir une température stable de 32°C à 35°C la première semaine."
+        "content": "Pendant la saison des pluies dans la Vallée-du-Ntem, préchauffez le poulailler 24h avant l'arrivée des poussins. Utilisez des lampes chauffantes."
     }
 
-# 💰 Route pour enregistrer le versement Orange Money
 @app.post("/api/save/orange")
 def enregistrer_epargne(depot: DépôtOrangeMoney):
-    # Application stricte de votre règle (15 000 à 30 000 CFA)
     if not (15000 <= depot.amount <= 30000):
         raise HTTPException(status_code=400, detail="L'épargne mensuelle doit être comprise entre 15 000 et 30 000 CFA.")
     
-    # Vérification si la référence SMS existe déjà
-    for transaction in base_donnees_epargne:
-        if transaction["transaction_ref"] == depot.transaction_ref.upper():
-            raise HTTPException(status_code=400, detail="Cette référence de transaction Orange Money a déjà été utilisée.")
-    
-    # Sauvegarde locale
-    nouvelle_transaction = {
-        "amount": depot.amount,
-        "transaction_ref": depot.transaction_ref.upper()
-    }
+    nouvelle_transaction = {"amount": depot.amount, "transaction_ref": depot.transaction_ref.upper()}
     base_donnees_epargne.append(nouvelle_transaction)
-    
-    return {"status": "success", "message": "Dépôt enregistré avec succès en local"}
+    return {"status": "success"}
+
+@app.get("/api/admin/transactions")
+def obtenir_toutes_les_transactions():
+    return {"transactions": base_donnees_epargne}

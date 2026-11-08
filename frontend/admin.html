@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroCrédit Suivi - Portail Banque</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f1f5f9; color: #0f172a; margin: 0; padding: 0; }
+        nav { background-color: #1e293b; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        main { max-w: 1000px; margin: 30px auto; padding: 0 20px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background-color: #f8fafc; color: #64748b; font-weight: bold; }
+        .badge { background-color: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+        .btn-refresh { background-color: #3b82f6; color: white; padding: 10px 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div>
+            <h1 style="margin: 0; font-size: 18px;">🏦 Espace Suivi Bancaire — AgroCrédit</h1>
+            <small style="opacity: 0.7;">Vue d'ensemble des agences d'Ambam & Kyé-Ossi</small>
+        </div>
+        <button onclick="chargerTransactions()" class="btn-refresh">🔄 Rafraîchir la liste</button>
+    </nav>
+
+    <main>
+        <div class="card">
+            <h2 style="margin-top: 0; font-size: 16px; color: #1e293b;">📋 Historique des versements d'épargne agricole reçus</h2>
+            <p style="font-size: 12px; color: #64748b;">Consultez les fonds sécurisés par le programme avant de valider les 85% de crédit de la banque.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>N°</th>
+                        <th>Bénéficiaire</th>
+                        <th>Montant Épargné</th>
+                        <th>Référence Orange Money</th>
+                        <th>Statut Validation</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #94a3b8; font-style: italic;">Aucun versement enregistré pour le moment.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        async function chargerTransactions() {
+            const tbody = document.getElementById('table-body');
+            try {
+                // Utilisation d'une adresse relative car le fichier est hébergé sur le même serveur
+                const response = await fetch("/api/admin/transactions");
+                const data = await response.json();
+
+                if (data.transactions && data.transactions.length > 0) {
+                    tbody.innerHTML = "";
+                    data.transactions.forEach((tx, index) => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td><strong>Jean Du Terrain</strong> (Ambam)</td>
+                                <td style="font-weight: bold; color: #166534;">${tx.amount.toLocaleString('fr-FR')} CFA</td>
+                                <td style="font-family: monospace; font-weight: bold;">${tx.transaction_ref}</td>
+                                <td><span class="badge">Validé par l'App</span></td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = 'tr><td colspan="5" style="text-align: center; color: #94a3b8; font-style: italic;">Aucun versement enregistré pour le moment.</td></tr>';
+                }
+            } catch (error) {
+                console.error("Erreur de chargement", error);
+            }
+        }
+
+        window.onload = chargerTransactions;
+    </script>
+</body>
+</html>
