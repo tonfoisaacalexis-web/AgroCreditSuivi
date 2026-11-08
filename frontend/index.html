@@ -96,7 +96,7 @@
 
         window.onload = chargerConseilAgro;
 
-        // Envoyer la transaction Orange Money au serveur local
+        // Envoyer la transaction Orange Money au serveur en ligne
         async function effectuerVersement() {
             const amountInput = document.getElementById('saving-amount');
             const refInput = document.getElementById('transaction-ref');
@@ -119,40 +119,45 @@
 
             try {
                 errorBox.style.display = "none";
+                const testUserId = "1"; // Liaison avec l'utilisateur Jean de votre main.py
+
                 const response = await fetch(serverUrl + "/api/save/orange", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ amount: amount, transaction_ref: ref })
+                    body: JSON.stringify({ 
+                        user_id: testUserId,
+                        amount: amount, 
+                        transaction_ref: ref 
+                    })
                 });
 
                 const result = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(result.detail || "Erreur du serveur.");
+                    throw new Error(result.detail || "Erreur de validation du serveur.");
                 }
 
                 // Incrémenter l'épargne globale
                 totalEpargne += amount;
                 
-                // 1. Calcul des frais de formation accumulés (5 000 CFA retirés pour chaque tranche de 20 000 CFA)
+                // 1. Calcul des frais de formation accumulés (5 000 CFA pour chaque tranche de 20 000 CFA)
                 const nombreDeMois = Math.floor(totalEpargne / 20000);
                 const fraisFormation = nombreDeMois * 5000;
 
-                // 2. Épargne nette servant de garantie réelle (nantissement)
+                // 2. Épargne nette servant de garantie réelle
                 const epargneNette = totalEpargne - fraisFormation;
 
-                // 3. Calcul du droit au crédit levier (Si l'épargne nette atteint 150 000 CFA, le crédit est de 850 000 CFA)
-                // Formule de levier : (Epargne Nette / 15%) * 85%
+                // 3. Calcul du droit au crédit de levier (Si épargne nette atteint 150 000, le crédit fait 850 000)
                 const droitCredit = epargneNette > 0 ? Math.floor((epargneNette / 0.15) * 0.85) : 0;
 
-                // Mise à jour de l'affichage
+                // Mise à jour de l'affichage à l'écran
                 document.getElementById('display-savings').innerText = totalEpargne.toLocaleString('fr-FR') + " CFA";
                 document.getElementById('display-credit').innerText = droitCredit.toLocaleString('fr-FR') + " CFA";
 
                 amountInput.value = "";
                 refInput.value = "";
 
-                alert("✅ Succès ! Dépôt Orange Money validé et enregistré. Vos frais de formation et votre levier de crédit ont été calculés.");
+                alert("✅ Succès ! Dépôt Orange Money validé et enregistré sur le serveur Render.");
 
             } catch (error) {
                 errorBox.innerText = "❌ Échec : " + error.message;
