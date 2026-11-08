@@ -1,5 +1,5 @@
 // 🔥 L'adresse de l'API principale doit s'arrêter juste après .com :
-const serverUrl = "https://agrocreditsuivi.onrender.com";
+const serverUrl = "https://agrocreditsuivi.onrender.com/admin";
 
 // 1. Charger la liste des clients depuis le serveur Render
 async function chargerClients() {

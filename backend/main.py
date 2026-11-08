@@ -106,6 +106,7 @@ def evaluer_projet_bancable(client_id: str):
     if not client_cible:
         raise HTTPException(status_code=404, detail="Client introuvable.")
     modele = modeles_rentabilite.get(client_cible["filiere"], {"cycle": "Indéfini", "invest": 1000000, "ca": 1300000, "charges": 400000})
+     # 🔥 REMPLACEZ LE BLOC DE RETOUR FINAL DE LA ROUTE EVALUATION PAR CELUI-CI :
     return {
         "client_name": client_cible["full_name"],
         "speculation": client_cible["filiere"],
@@ -117,6 +118,6 @@ def evaluer_projet_bancable(client_id: str):
         "charges_exploitation_prev": modele["charges"],
         "benefice_net_prev": modele["ca"] - modele["charges"] - modele["invest"],
         "garantie_type": client_cible["garantie_type"],
-        "garantie_details": client_cible["garentie_details"] if "garentie_details" in client_cible else client_cible["garantie_details"],
+        "garantie_details": client_cible["garantie_details"],  # Clé corrigée sans faute d'orthographe
         "statut_projet": "BANCABLE & SÉCURISÉ"
     }
