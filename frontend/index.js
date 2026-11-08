@@ -42,7 +42,7 @@ async function effectuerVersement() {
 
     try {
         errorBox.style.display = "none";
-        const testUserId = "1"; // Liaison avec le profil de test initialisé
+        const testUserId = "1"; 
 
         const response = await fetch(serverUrl + "/api/save/orange", {
             method: 'POST',
@@ -60,20 +60,13 @@ async function effectuerVersement() {
             throw new Error(result.detail || "Erreur de validation du serveur.");
         }
 
-        // Incrémenter l'effort d'épargne
         totalEpargne += amount;
         
-        // Calcul lissé des frais de formation (5 000 CFA déduits par tranche de 20 000 CFA)
         const nombreDeMois = Math.floor(totalEpargne / 20000);
         const fraisFormation = nombreDeMois * 5000;
-
-        // Épargne nette de nantissement réel
         const epargneNette = totalEpargne - fraisFormation;
-
-        // Calcul du droit au crédit de levier (15% apport / 85% crédit)
         const droitCredit = epargneNette > 0 ? Math.floor((epargneNette / 0.15) * 0.85) : 0;
 
-        // Rafraîchissement dynamique de l'interface graphique
         document.getElementById('display-savings').innerText = totalEpargne.toLocaleString('fr-FR') + " CFA";
         document.getElementById('display-credit').innerText = droitCredit.toLocaleString('fr-FR') + " CFA";
 
@@ -88,5 +81,4 @@ async function effectuerVersement() {
     }
 }
 
-// Initialisation automatique au chargement de l'écran utilisateur
 window.onload = chargerConseilAgro;

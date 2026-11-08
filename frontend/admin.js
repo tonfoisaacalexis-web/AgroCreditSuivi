@@ -36,7 +36,7 @@ async function chargerClients() {
     }
 }
 
-// 🔥 REMPLACEZ LA FONCTION ENREGISTRER PAR CELLE-CI :
+// 2. Transmettre l'inscription d'un nouvel agriculteur avec ses garanties d'octroi
 async function enregistrerAgriculteur() {
     const nameInput = document.getElementById('reg-name');
     const emailInput = document.getElementById('reg-email');
@@ -69,7 +69,7 @@ async function enregistrerAgriculteur() {
             nameInput.value = "";
             emailInput.value = "";
             garantieDetailsInput.value = "";
-            chargerClients(); // Rafraîchir instantanément le tableau à l'écran
+            chargerClients();
         } else {
             alert("❌ Échec : " + (result.detail || "Erreur de validation du serveur."));
         }
