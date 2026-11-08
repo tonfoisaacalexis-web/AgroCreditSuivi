@@ -55,6 +55,7 @@ def obtenir_conseil():
         "content": "Pendant la saison des pluies dans la Vallée-du-Ntem, préchauffez le poulailler 24h avant l'arrivée des poussins. Utilisez des lampes chauffantes."
     }
 
+# 🔥 REMPLACEZ LA ROUTE POST /api/register PAR CETTE VERSION ULTRA-STABLE :
 @app.post("/api/register")
 def inscrire_client(client: ClientRegister):
     nouvel_id = str(len(base_donnees_clients) + 1)
@@ -68,7 +69,7 @@ def inscrire_client(client: ClientRegister):
         "garantie_details": client.garantie_details
     }
     base_donnees_clients.append(nouveau_client)
-    return {"status": "success", "client": nouveau_client}
+    return {"status": "success", "message": "Client enregistré", "client": nouveau_client}
 
 @app.post("/api/save/orange")
 def enregistrer_epargne(depot: DépôtOrangeMoney):
