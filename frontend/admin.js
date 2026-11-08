@@ -1,5 +1,4 @@
-// 🔥 L'adresse de l'API principale doit s'arrêter juste après .com :
-const serverUrl = "https://agrocreditsuivi.onrender.com/admin";
+const serverUrl = ""; // Utilise automatiquement l'adresse actuelle du serveur
 
 // 1. Charger la liste des clients depuis le serveur Render
 async function chargerClients() {
@@ -90,23 +89,23 @@ async function analyserProjet(clientId) {
         contentBox.innerHTML = `
             <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; border-top: 4px solid #2563eb; line-height: 1.6;">
                 <h4 style="margin:0 0 10px 0; color:#1e293b; font-size:13px; text-transform: uppercase;">📊 DOSSIER TECHNIQUE BANCABLE</h4>
-                <p style="margin:4px 0;"><strong>Nom :</strong> ${data.client_name}</p>
-                <p style="margin:4px 0;"><strong>Spéculation :</strong> ${data.speculation}</p>
-                <p style="margin:4px 0;"><strong>Cycle :</strong> ${data.cycle_exploitation}</p>
+                <p style="margin:4px 0;"><strong>Nom :</strong> ` + data.client_name + `</p>
+                <p style="margin:4px 0;"><strong>Spéculation :</strong> ` + data.speculation + `</p>
+                <p style="margin:4px 0;"><strong>Cycle :</strong> ` + data.cycle_exploitation + `</p>
                 <hr style="border:0; border-top:1px solid #e2e8f0; margin:10px 0;">
                 <p style="margin:4px 0; font-weight:bold; color:#c2410c;">🔒 COUVERTURE DES RISQUES / GARANTIES :</p>
-                <p style="margin:2px 0;">Type : <span class="badge" style="background-color:#eff6ff; color:#1d4ed8;">${data.garantie_type}</span></p>
-                <p style="margin:4px 0; font-size:11px; background:#f8fafc; padding:6px; border-radius:4px; border:1px solid #f1f5f9; color:#334155;">📝 ${data.garantie_details}</p>
+                <p style="margin:2px 0;">Type : <span class="badge" style="background-color:#eff6ff; color:#1d4ed8;">` + data.garantie_type + `</span></p>
+                <p style="margin:4px 0; font-size:11px; background:#f8fafc; padding:6px; border-radius:4px; border:1px solid #f1f5f9; color:#334155;">📝 ` + data.garantie_details + `</p>
                 <hr style="border:0; border-top:1px solid #e2e8f0; margin:10px 0;">
                 <p style="margin:4px 0; font-weight:bold; color:#1e293b;">💰 Plan de Financement :</p>
                 <p style="margin:2px 0;">Garantie Épargne Nette (15%) : <strong>150 000 CFA</strong></p>
                 <p style="margin:2px 0;">Crédit Sollicité (85%) : <strong style="color:#166534;">850 000 CFA</strong></p>
                 <hr style="border:0; border-top:1px solid #e2e8f0; margin:10px 0;">
                 <p style="margin:4px 0; font-weight:bold; color:#1e293b;">📈 Prévisions d'Exploitation :</p>
-                <p style="margin:2px 0;">Chiffre d'Affaires : <strong>${data.chiffre_affaires_prev.toLocaleString()} CFA</strong></p>
-                <p style="margin:2px 0;">Bénéfice Net Estimé : <strong style="color:#2563eb;">+${data.benefice_net_prev.toLocaleString()} CFA</strong></p>
+                <p style="margin:2px 0;">Chiffre d'Affaires : <strong>` + data.chiffre_affaires_prev.toLocaleString() + ` CFA</strong></p>
+                <p style="margin:2px 0;">Bénéfice Net Estimé : <strong style="color:#2563eb;">+` + data.benefice_net_prev.toLocaleString() + ` CFA</strong></p>
                 <div style="margin-top:15px; background:#dcfce7; color:#15803d; padding:8px; text-align:center; font-weight:bold; border-radius:6px; font-size:11px;">
-                    🎯 EVALUATION : ${data.statut_projet}
+                    🎯 EVALUATION : ` + data.statut_projet + `
                 </div>
             </div>
         `;
