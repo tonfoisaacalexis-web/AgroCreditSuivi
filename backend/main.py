@@ -61,10 +61,16 @@ def inscrire_client(client: ClientRegister):
     return {"status": "success", "message": "Agriculteur inscrit avec succès", "client": nouveau_client}
 
 # 💰 Route API : Enregistrer un versement Orange Money
+# Dans backend/main.py, modifiez les routes de calcul ou d'affichage
+
+# Nouvelle règle de validation : Minimum 20 000 FCFA / mois
 @app.post("/api/save/orange")
 def enregistrer_epargne(depot: DépôtOrangeMoney):
-    if not (15000 <= depot.amount <= 30000):
-        raise HTTPException(status_code=400, detail="L'épargne doit être entre 15 000 et 30 000 CFA.")
+    # Changement du seuil minimal à 20 000 CFA selon vos nouvelles directives
+    if depot.amount < 20000:
+        raise HTTPException(status_code=400, detail="Le montant minimum d'épargne mensuel est de 20 000 CFA.")
+    
+    # ... (reste du code d'enregistrement inchangé)
     
     # Trouver le client et ajouter le montant
     client_trouve = False

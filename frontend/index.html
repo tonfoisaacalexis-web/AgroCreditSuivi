@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgroCrédit Suivi - Espace Client</title>
+    <!-- Version de secours pour que la structure soit lisible même hors-connexion internet -->
     <style>
         body { font-family: sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 0; }
         nav { background-color: #15803d; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
@@ -35,11 +36,11 @@
                 <h2 style="font-size: 14px; color: #64748b; margin-top: 0;">📈 Point de situation financière</h2>
                 <div class="grid-2">
                     <div class="box-savings">
-                        <small>Total Épargné</small>
+                        <small>Total Épargné Brut</small>
                         <div style="font-size: 24px; font-weight: bold; margin-top: 5px;" id="display-savings">0 CFA</div>
                     </div>
                     <div class="box-credit">
-                        <small>Droit au Crédit Obtenu (85%)</small>
+                        <small>Droit au Crédit Levier (85%)</small>
                         <div style="font-size: 24px; font-weight: bold; margin-top: 5px;" id="display-credit">0 CFA</div>
                     </div>
                 </div>
@@ -47,7 +48,7 @@
 
             <div class="card">
                 <h2 style="font-size: 16px; margin-top: 0;">💰 Enregistrer un versement mensuel</h2>
-                <p style="font-size: 12px; color: #64748b;">Entrez le montant réglementaire d'épargne (15 000 - 30 000 CFA).</p>
+                <p style="font-size: 12px; color: #64748b;">Entrez le montant réglementaire d'épargne mensuel (Minimum 20 000 CFA).</p>
                 
                 <div id="error-message" class="error"></div>
 
@@ -89,7 +90,7 @@
                     </div>
                 `;
             } catch (error) {
-                tipsBox.innerHTML = '<p style="font-size: 12px; color: #b91c1c; font-weight: bold;">⚠️ Le moteur local ne répond pas. Vérifiez la fenêtre noire.</p>';
+                tipsBox.innerHTML = '<p style="font-size: 12px; color: #b91c1c; font-weight: bold;">⚠️ Le moteur en ligne ne répond pas. Vérifiez le statut Render.</p>';
             }
         }
 
@@ -104,8 +105,8 @@
             const amount = parseInt(amountInput.value);
             const ref = refInput.value.trim();
 
-            if (isNaN(amount) || amount < 15000 || amount > 30000) {
-                errorBox.innerText = "⚠️ Règle AgroCrédit : Le montant doit être compris entre 15 000 CFA et 30 000 CFA.";
+            if (isNaN(amount) || amount < 20000) {
+                errorBox.innerText = "⚠️ Règle AgroCrédit : Le montant minimum d'épargne mensuel réglementaire est de 20 000 CFA.";
                 errorBox.style.display = "block";
                 return;
             }
@@ -130,16 +131,28 @@
                     throw new Error(result.detail || "Erreur du serveur.");
                 }
 
+                // Incrémenter l'épargne globale
                 totalEpargne += amount;
-                const creditPotentiel = Math.floor(totalEpargne * 0.85);
+                
+                // 1. Calcul des frais de formation accumulés (5 000 CFA retirés pour chaque tranche de 20 000 CFA)
+                const nombreDeMois = Math.floor(totalEpargne / 20000);
+                const fraisFormation = nombreDeMois * 5000;
 
+                // 2. Épargne nette servant de garantie réelle (nantissement)
+                const epargneNette = totalEpargne - fraisFormation;
+
+                // 3. Calcul du droit au crédit levier (Si l'épargne nette atteint 150 000 CFA, le crédit est de 850 000 CFA)
+                // Formule de levier : (Epargne Nette / 15%) * 85%
+                const droitCredit = epargneNette > 0 ? Math.floor((epargneNette / 0.15) * 0.85) : 0;
+
+                // Mise à jour de l'affichage
                 document.getElementById('display-savings').innerText = totalEpargne.toLocaleString('fr-FR') + " CFA";
-                document.getElementById('display-credit').innerText = creditPotentiel.toLocaleString('fr-FR') + " CFA";
+                document.getElementById('display-credit').innerText = droitCredit.toLocaleString('fr-FR') + " CFA";
 
                 amountInput.value = "";
                 refInput.value = "";
 
-                alert("✅ Succès ! Dépôt Orange Money validé et enregistré localement.");
+                alert("✅ Succès ! Dépôt Orange Money validé et enregistré. Vos frais de formation et votre levier de crédit ont été calculés.");
 
             } catch (error) {
                 errorBox.innerText = "❌ Échec : " + error.message;

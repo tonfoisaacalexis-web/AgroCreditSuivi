@@ -17,13 +17,14 @@
         .btn:hover { background-color: #1d4ed8; }
         .btn-refresh { background-color: #475569; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; }
         .badge { background-color: #dcfce7; color: #15803d; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .badge-frais { background-color: #fee2e2; color: #991b1b; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <nav>
         <div>
-            <h1 style="margin: 0; font-size: 18px;">🏦 Espace Suivi Bancaire & Enregistrement — AgroCrédit</h1>
+            <h1 style="margin: 0; font-size: 18px;">🏦 Espace Suivi Bancaire & Enregistrement — AgroCrédit Suivi</h1>
             <small style="opacity: 0.7;">Gestion de la Vallée-du-Ntem (Ambam & Kyé-Ossi)</small>
         </div>
         <button onclick="chargerClients()" class="btn-refresh">🔄 Actualiser les Comptes</button>
@@ -41,10 +42,15 @@
             <label style="font-size: 12px; font-weight: bold;">Adresse Email / Contact</label>
             <input type="email" id="reg-email" placeholder="Ex: isaac@gmail.com">
 
-            <label style="font-size: 12px; font-weight: bold;">Filière choisie</label>
+            <label style="font-size: 12px; font-weight: bold;">Spéculation Agropastorale (Cycle court)</label>
             <select id="reg-filiere">
-                <option value="Élevage">Poulets de chair (Élevage)</option>
-                <option value="Agriculture">Maraîchage / Bananiers (Agriculture)</option>
+                <option value="Poulet de chair">Poulet de chair (Élevage - 45 jours)</option>
+                <option value="Porc engraisseur">Porc engraisseur (Élevage)</option>
+                <option value="Pisciculture">Pisciculture (Poisson)</option>
+                <option value="Maïs">Culture de Maïs (Campagne courte)</option>
+                <option value="Bananier plantain">Bananier plantain (En production)</option>
+                <option value="Cacao">Cacaoculteur (Entretien/Production)</option>
+                <option value="Manioc">Transformation du Manioc (Gari/Miondo)</option>
             </select>
 
             <button onclick="enregistrerAgriculteur()" class="btn">Créer le compte d'accompagnement</button>
@@ -52,18 +58,19 @@
 
         <!-- 🏦 Liste des clients et calcul des droits au crédit -->
         <div class="card">
-            <h3 style="margin-top: 0; color: #1e293b;">📋 Portefeuille Clients & Droits au Crédit</h3>
-            <p style="font-size: 11px; color: #64748b;">Suivi des dépôts réglementaires et calcul instantané de la ligne de crédit à débloquer.</p>
+            <h3 style="margin-top: 0; color: #1e293b;">📋 Portefeuille Clients & Droits au Crédit Levier</h3>
+            <p style="font-size: 11px; color: #64748b;">Suivi des dépôts mensuels réglementaires (20 000 CFA), retrait automatique des frais de formation (5 000 CFA) et calcul du crédit cible de 850 000 CFA.</p>
             
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Nom du Producteur</th>
-                        <th>Filière</th>
-                        <th>Total Épargné</th>
+                        <th>Spéculation</th>
+                        <th>Total Brut Épargné</th>
+                        <th>Frais Formation Retranchés</th>
                         <th>Droit au Crédit (85%)</th>
-                        <th>Suivi Conseils</th>
+                        <th>Suivi</th>
                     </tr>
                 </thead>
                 <tbody id="table-clients-body">
@@ -74,20 +81,27 @@
     </main>
 
     <script>
-        const serverUrl = "http://127.0.0.1:8000"; // En local. Deviendra relatif sur Render.
+        const serverUrl = ""; // Relatif pour fonctionner de manière transparente en local et sur Render
 
-        // Fonction pour charger la liste des clients et calculer les 85%
+        // Fonction pour charger la liste des clients et exécuter la logique financière
         async function chargerClients() {
             const tbody = document.getElementById('table-clients-body');
             try {
-                const response = await fetch("/api/admin/clients");
+                const response = await fetch(serverUrl + "/api/admin/clients");
                 const data = await response.json();
 
                 if (data.clients && data.clients.length > 0) {
                     tbody.innerHTML = "";
                     data.clients.forEach(client => {
-                        // Calcul automatique des 85 %
-                        const droitCredit = Math.floor(client.total_epargne * 0.85);
+                        // 1. Calcul des frais de formation accumulés (5 000 CFA prélevés par tranche de 20 000 CFA épargnée)
+                        const nombreDeMois = Math.floor(client.total_epargne / 20000);
+                        const fraisFormation = nombreDeMois * 5000;
+
+                        // 2. Épargne nette servant de nantissement réel pour le banquier
+                        const epargneNette = client.total_epargne - fraisFormation;
+
+                        // 3. Calcul du droit au crédit levier (Si épargne nette atteint 150 000 CFA, le crédit est de 850 000 CFA)
+                        const droitCredit = epargneNette > 0 ? Math.floor((epargneNette / 0.15) * 0.85) : 0;
 
                         tbody.innerHTML += `
                             <tr>
@@ -95,13 +109,14 @@
                                 <td><strong>${client.full_name}</strong><br><small style="color:#64748b;">${client.email}</small></td>
                                 <td>${client.filiere}</td>
                                 <td style="font-weight: bold; color: #1e293b;">${client.total_epargne.toLocaleString('fr-FR')} CFA</td>
-                                <td style="font-weight: bold; color: #166534; background-color: #f0fdf4;">${droitCredit.toLocaleString('fr-FR')} CFA</td>
-                                <td><span class="badge">Actif (100%)</span></td>
+                                <td style="font-weight: bold; color: #b91c1c;"><span class="badge-frais">-${fraisFormation.toLocaleString('fr-FR')} CFA</span></td>
+                                <td style="font-weight: bold; color: #166534; background-color: #f0fdf4; font-size: 14px;">${droitCredit.toLocaleString('fr-FR')} CFA</td>
+                                <td><span class="badge">Actif</span></td>
                             </tr>
                         `;
                     });
                 } else {
-                    tbody.innerHTML = 'tr><td colspan="6" style="text-align: center; color: #94a3b8;">Aucun client enregistré.</td></tr>';
+                    tbody.innerHTML = 'tr><td colspan="7" style="text-align: center; color: #94a3b8;">Aucun client enregistré.</td></tr>';
                 }
             } catch (error) {
                 console.error("Erreur de chargement", error);
@@ -115,12 +130,12 @@
             const filiereInput = document.getElementById('reg-filiere');
 
             if (nameInput.value.trim() === "" || emailInput.value.trim() === "") {
-                alert("⚠️ Erreur : Veuillez remplir tous les champs du formulaire.");
+                alert("⚠️ Erreur : Veuillez remplir le nom et le contact de l'agriculteur.");
                 return;
             }
 
             try {
-                const response = await fetch("/api/register", {
+                const response = await fetch(serverUrl + "/api/register", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
