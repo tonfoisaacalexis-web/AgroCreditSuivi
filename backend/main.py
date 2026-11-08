@@ -94,31 +94,53 @@ def obtenir_tous_les_clients():
 
 @app.get("/api/admin/evaluation/{client_id}")
 def evaluer_projet_bancable(client_id: str):
+    # Données techniques : investissement constant à 1 000 000 CFA (150k apport + 850k crédit)
+    # Droit au crédit fixe à 850 000 CFA pour le levier visé en fin de cycle de 10 mois
     modeles_rentabilite = {
-        "Poulet de chair": {"cycle": "45 jours", "invest": 1000000, "ca": 1400000, "charges": 350000},
-        "Porc engraisseur": {"cycle": "6 mois", "invest": 1000000, "ca": 1500000, "charges": 450000},
-        "Pisciculture": {"cycle": "6 mois", "invest": 1000000, "ca": 1600000, "charges": 500000},
-        "Maïs": {"cycle": "4 mois", "invest": 1000000, "ca": 1350000, "charges": 300000},
-        "Bananier plantain": {"cycle": "En production", "invest": 1000000, "ca": 1700000, "charges": 400000},
-        "Cacao": {"cycle": "Entretien/Production", "invest": 1000000, "ca": 1800000, "charges": 450000},
-        "Manioc": {"cycle": "Transformation", "invest": 1000000, "ca": 1500000, "charges": 350000}
+        "Poulet de chair": {"cycle": "45 jours", "invest": 1000000, "ca": 1400000, "charges": 350000, "duree_remboursement_mois": 3},
+        "Porc engraisseur": {"cycle": "6 mois", "invest": 1000000, "ca": 1500000, "charges": 450000, "duree_remboursement_mois": 6},
+        "Pisciculture": {"cycle": "6 mois", "invest": 1000000, "ca": 1600000, "charges": 500000, "duree_remboursement_mois": 6},
+        "Maïs": {"cycle": "4 mois", "invest": 1000000, "ca": 1350000, "charges": 300000, "duree_remboursement_mois": 4},
+        "Bananier plantain": {"cycle": "En production", "invest": 1000000, "ca": 1700000, "charges": 400000, "duree_remboursement_mois": 12},
+        "Cacao": {"cycle": "Entretien/Production", "invest": 1000000, "ca": 1800000, "charges": 450000, "duree_remboursement_mois": 12},
+        "Manioc": {"cycle": "Transformation", "invest": 1000000, "ca": 1500000, "charges": 350000, "duree_remboursement_mois": 6}
     }
+
     client_cible = next((c for c in base_donnees_clients if c["id"] == client_id), None)
     if not client_cible:
         raise HTTPException(status_code=404, detail="Client introuvable.")
-    modele = modeles_rentabilite.get(client_cible["filiere"], {"cycle": "Indéfini", "invest": 1000000, "ca": 1300000, "charges": 400000})
-     # 🔥 REMPLACEZ LE BLOC DE RETOUR FINAL DE LA ROUTE EVALUATION PAR CELUI-CI :
+
+    speculation = client_cible["filiere"]
+    modele = modeles_rentabilite.get(speculation, {"cycle": "Indéfini", "invest": 1000000, "ca": 1300000, "charges": 400000, "duree_remboursement_mois": 6})
+    
+    # 📊 CALCULS AMORTISSEMENT CRÉDIT (850 000 CFA constant à terme)
+    credit_sollicite = 850000
+    taux_interet_mensuel = 0.01  # 1% par mois (12% par an)
+    duree = modele["duree_remboursement_mois"]
+    
+    # Formule standard COBAC pour traite mensuelle constante (Amortissement lissé)
+    mensualite_globale = math.floor((credit_sollicite * taux_interet_mensuel) / (1 - (1 + taux_interet_mensuel) ** (-duree)))
+    total_interets = (mensualite_globale * duree) - credit_sollicite
+
+    # Prévisions d'exploitation du projet
+    benefice_brut_activite = modele["ca"] - modele["charges"] - modele["invest"]
+    
     return {
         "client_name": client_cible["full_name"],
-        "speculation": client_cible["filiere"],
+        "speculation": speculation,
         "cycle_exploitation": modele["cycle"],
         "budget_total_projet": modele["invest"],
         "apport_epargne_nette": 150000,
-        "credit_sollicite_banque": 850000,
+        "credit_sollicite_banque": credit_sollicite,
         "chiffre_affaires_prev": modele["ca"],
         "charges_exploitation_prev": modele["charges"],
-        "benefice_net_prev": modele["ca"] - modele["charges"] - modele["invest"],
+        "benefice_net_prev": benefice_brut_activite,
         "garantie_type": client_cible["garantie_type"],
-        "garantie_details": client_cible["garantie_details"],  # Clé corrigée sans faute d'orthographe
-        "statut_projet": "BANCABLE & SÉCURISÉ"
+        "garantie_details": client_cible["garantie_details"],
+        "statut_projet": "BANCABLE & SÉCURISÉ",
+        # Variables de remboursement transmises
+        "duree_mois": duree,
+        "mensualite": mensualite_globale,
+        "total_interets": total_interets,
+        "taux_annuel": "12%"
     }
