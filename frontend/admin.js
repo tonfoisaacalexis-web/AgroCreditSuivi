@@ -1,4 +1,4 @@
-const serverUrl = "https://agrocreditsuivi.onrender.com";
+const serverUrl = "https://agrocreditsuivi.onrender.com/admin";
 
 async function chargerClients() {
     const tbody = document.getElementById('table-clients-body');
