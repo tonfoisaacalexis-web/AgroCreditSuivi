@@ -1,6 +1,5 @@
 const serverUrl = "https://agrocreditsuivi.onrender.com";
 
-// 1. Charger le portefeuille de clients depuis le serveur Render
 async function chargerClients() {
     const tbody = document.getElementById('table-clients-body');
     try {
@@ -31,11 +30,10 @@ async function chargerClients() {
             tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #94a3b8;">Aucun client enregistré.</td></tr>';
         }
     } catch (error) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #b91c1c; font-weight: bold;">⚠️ Erreur de connexion avec le serveur Render.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #b91c1c; font-weight: bold;">⚠️ Erreur de connexion au serveur.</td></tr>';
     }
 }
 
-// 2. Transmettre l'inscription d'un nouvel agriculteur avec ses garanties d'octroi
 async function enregistrerAgriculteur() {
     const nameInput = document.getElementById('reg-name');
     const emailInput = document.getElementById('reg-email');
@@ -75,10 +73,9 @@ async function enregistrerAgriculteur() {
     }
 }
 
-// 3. Générer le canevas d'évaluation de projet de levier pour la banque
 async function analyserProjet(clientId) {
     const contentBox = document.getElementById('evaluation-content');
-    contentBox.innerHTML = "<p style='font-style:italic;'>Analyse des indicateurs de viabilité et risques en cours...</p>";
+    contentBox.innerHTML = "<p style='font-style:italic;'>Analyse des risques en cours...</p>";
 
     try {
         const response = await fetch(serverUrl + "/api/admin/evaluation/" + clientId);
@@ -91,11 +88,9 @@ async function analyserProjet(clientId) {
                 <p style="margin:4px 0;"><strong>Spéculation :</strong> ${data.speculation}</p>
                 <p style="margin:4px 0;"><strong>Cycle :</strong> ${data.cycle_exploitation}</p>
                 <hr style="border:0; border-top:1px solid #e2e8f0; margin:10px 0;">
-                
                 <p style="margin:4px 0; font-weight:bold; color:#c2410c;">🔒 COUVERTURE DES RISQUES / GARANTIES :</p>
                 <p style="margin:2px 0;">Type : <span class="badge" style="background-color:#eff6ff; color:#1d4ed8;">${data.garantie_type}</span></p>
                 <p style="margin:4px 0; font-size:11px; background:#f8fafc; padding:6px; border-radius:4px; border:1px solid #f1f5f9; color:#334155;">📝 ${data.garantie_details}</p>
-                
                 <hr style="border:0; border-top:1px solid #e2e8f0; margin:10px 0;">
                 <p style="margin:4px 0; font-weight:bold; color:#1e293b;">💰 Plan de Financement :</p>
                 <p style="margin:2px 0;">Garantie Épargne Nette (15%) : <strong>150 000 CFA</strong></p>
@@ -114,5 +109,4 @@ async function analyserProjet(clientId) {
     }
 }
 
-// Chargement initial automatique
 window.onload = chargerClients;
