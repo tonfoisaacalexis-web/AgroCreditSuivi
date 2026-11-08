@@ -21,14 +21,14 @@
         .badge { background-color: #dcfce7; color: #15803d; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
         .badge-frais { background-color: #fee2e2; color: #991b1b; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
     </style>
-    <!-- Chargement de la logique externe -->
-    <script src="admin.js" defer></script>
+    <!-- Chargement dynamique depuis le point de montage statique de FastAPI -->
+    <script src="/static/admin.js" defer></script>
 </head>
 <body>
 
     <nav>
         <div>
-            <h1 style="margin: 0; font-size: 18px;">🏦 Espace Suivi Bancaire & Enregistrement</h1>
+            <h1 style="margin: 0; font-size: 18px;">🏦 Espace Suivi Bancaire & Enregistrement — AgroCrédit Suivi</h1>
             <small style="opacity: 0.7;">Gestion de la Vallée-du-Ntem (Ambam & Kyé-Ossi)</small>
         </div>
         <button onclick="chargerClients()" class="btn-refresh">🔄 Actualiser les Comptes</button>
@@ -38,7 +38,7 @@
         <!-- 👤 1. Formulaire d'inscription -->
         <div class="card">
             <h3 style="margin-top:0; color: #1e293b;">👤 Inscrire un Agriculteur</h3>
-            <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Ouvrez un dossier d'accompagnement.</p>
+            <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Ouvrez un dossier d'accompagnement pour un nouveau producteur.</p>
             
             <label style="font-size: 12px; font-weight: bold;">Nom complet du producteur</label>
             <input type="text" id="reg-name" placeholder="Ex: Isaac Tonfo">
@@ -46,7 +46,7 @@
             <label style="font-size: 12px; font-weight: bold;">Adresse Email / Contact</label>
             <input type="email" id="reg-email" placeholder="Ex: isaac@gmail.com">
 
-            <label style="font-size: 12px; font-weight: bold;">Spéculation Agropastorale</label>
+            <label style="font-size: 12px; font-weight: bold;">Spéculation Agropastorale (Cycle court)</label>
             <select id="reg-filiere">
                 <option value="Poulet de chair">Poulet de chair (Élevage - 45 jours)</option>
                 <option value="Porc engraisseur">Porc engraisseur (Élevage)</option>
@@ -59,21 +59,22 @@
 
             <label style="font-size: 12px; font-weight: bold;">Type de Garantie d'Octroi</label>
             <select id="reg-garantie-type">
-                <option value="Caution Fonctionnaire">Caution Solidaire (Fonctionnaire)</option>
-                <option value="Nantissement Matériel">Nantissement Matériel (Moto, Moulin)</option>
-                <option value="Garantie Réelle">Garantie Réelle (Titre Foncier)</option>
+                <option value="Caution Fonctionnaire">Caution Solidaire (Fonctionnaire avec Bulletin)</option>
+                <option value="Nantissement Matériel">Nantissement Matériel (Moto, Camion, Moulin)</option>
+                <option value="Garantie Réelle">Garantie Réelle (Titre Foncier / Attestation Coutumière)</option>
             </select>
 
             <label style="font-size: 12px; font-weight: bold;">Détails & Preuves de la Garantie</label>
-            <input type="text" id="reg-garantie-details" placeholder="Ex: Aval de M. Ndong, Enseignant">
+            <input type="text" id="reg-garantie-details" placeholder="Ex: Aval de M. Ndong, Enseignant au Lycée (Matricule X-123)">
 
-            <button onclick="enregistrerAgriculteur()" class="btn">Créer le compte</button>
+            <button onclick="enregistrerAgriculteur()" class="btn">Créer le compte d'accompagnement</button>
         </div>
 
         <!-- 🏦 2. Liste des clients -->
         <div class="card">
             <h3 style="margin-top: 0; color: #1e293b;">📋 Portefeuille Clients & Droits</h3>
-            <p style="font-size: 11px; color: #64748b;">Suivi des dépôts de 20k CFA et frais de 5k CFA.</p>
+            <p style="font-size: 11px; color: #64748b;">Suivi des dépôts de 20k CFA, prélèvement de 5k CFA de frais de formation et crédit de 850k CFA.</p>
+            
             <table>
                 <thead>
                     <tr>
@@ -94,9 +95,10 @@
             </table>
         </div>
 
-        <!-- 📊 3. Fiche d'évaluation -->
+        <!-- 📊 3. Fiche d'évaluation dynamique -->
         <div class="card" style="background-color: #fafafa; border: 1px dashed #cbd5e1;">
             <h3 style="margin-top:0; color: #1e293b;">📋 Canevas Projet Bancable</h3>
+            <p style="font-size: 11px; color: #64748b;">Cliquez sur « Évaluer » pour générer l'analyse de viabilité économique pour l'agence.</p>
             <div id="evaluation-content" style="font-size: 12px; margin-top: 15px; color: #475569; font-style: italic;">
                 Aucun projet sélectionné.
             </div>

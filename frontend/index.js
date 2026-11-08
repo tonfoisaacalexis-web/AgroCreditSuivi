@@ -1,5 +1,5 @@
 let totalEpargne = 0;
-const serverUrl = "https://onrender.com";
+const serverUrl = "https://agrocreditsuivi.onrender.com";
 
 // 1. Charger automatiquement le conseil agropastoral actif depuis Python
 async function chargerConseilAgro() {
