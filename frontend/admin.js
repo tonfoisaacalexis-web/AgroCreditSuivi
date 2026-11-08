@@ -1,4 +1,4 @@
-const serverUrl = "https://onrender.com";
+const serverUrl = "https://agrocreditsuivi.onrender.com";
 
 // 1. Charger le portefeuille de clients depuis le serveur Render
 async function chargerClients() {
