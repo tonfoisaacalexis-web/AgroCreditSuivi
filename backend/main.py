@@ -13,10 +13,13 @@ base_donnees_epargne = [
     {"user_id": "1", "amount": 20000, "transaction_ref": "699418222"}
 ]
 
+# 1. Mettez à jour le modèle pour accepter les nouvelles données de garantie
 class ClientRegister(BaseModel):
     full_name: str
     email: str
     filiere: str
+    garantie_type: str        # 'Fonctionnaire', 'Titre Foncier', 'Matériel Roulant'
+    garantie_details: str     # Ex: "Aval de M. Ndong, Enseignant Lycée d'Ambam (CACI 450k)"
 
 class DépôtOrangeMoney(BaseModel):
     user_id: str
@@ -94,3 +97,44 @@ def enregistrer_epargne(depot: DépôtOrangeMoney):
 @app.get("/api/admin/clients")
 def obtenir_tous_les_clients():
     return {"clients": base_donnees_clients}
+
+ # 2. Mettez à jour la route d'évaluation pour inclure ces garanties dans le rapport
+@app.get("/api/admin/evaluation/{client_id}")
+def evaluer_projet_bancable(client_id: str):
+    modeles_rentabilite = {
+        "Poulet de chair": {"cycle": "45 jours", "invest": 1000000, "ca": 1400000, "charges": 350000},
+        "Porc engraisseur": {"cycle": "6 mois", "invest": 1000000, "ca": 1500000, "charges": 450000},
+        "Pisciculture": {"cycle": "6 mois", "invest": 1000000, "ca": 1600000, "charges": 500000},
+        "Maïs": {"cycle": "4 mois", "invest": 1000000, "ca": 1350000, "charges": 300000},
+        "Bananier plantain": {"cycle": "En production", "invest": 1000000, "ca": 1700000, "charges": 400000},
+        "Cacao": {"cycle": "Entretien/Production", "invest": 1000000, "ca": 1800000, "charges": 450000},
+        "Manioc": {"cycle": "Transformation", "invest": 1000000, "ca": 1500000, "charges": 350000}
+    }
+
+    client_cible = None
+    for client in base_donnees_clients:
+        if client["id"] == client_id:
+            client_cible = client
+            break
+
+    if not client_cible:
+        raise HTTPException(status_code=404, detail="Client introuvable.")
+
+    speculation = client_cible["filiere"]
+    modele = modeles_rentabilite.get(speculation, {"cycle": "Indéfini", "invest": 1000000, "ca": 1300000, "charges": 400000})
+    benefice_previsionnel_net = modele["ca"] - modele["charges"] - modele["invest"]
+    
+    return {
+        "client_name": client_cible["full_name"],
+        "speculation": speculation,
+        "cycle_exploitation": modele["cycle"],
+        "budget_total_projet": modele["invest"],
+        "apport_epargne_nette": 150000,
+        "credit_sollicite_banque": 850000,
+        "chiffre_affaires_prev": modele["ca"],
+        "charges_exploitation_prev": modele["charges"],
+        "benefice_net_prev": benefice_previsionnel_net,
+        "garantie_type": client_cible.get("garantie_type", "Non spécifiée"),
+        "garantie_details": client_cible.get("garantie_details", "Aucun document fourni"),
+        "statut_projet": "BANCABLE & SÉCURISÉ"
+    }
