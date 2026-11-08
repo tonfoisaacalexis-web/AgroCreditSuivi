@@ -7,79 +7,143 @@
     <style>
         body { font-family: sans-serif; background-color: #f1f5f9; color: #0f172a; margin: 0; padding: 0; }
         nav { background-color: #1e293b; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        main { max-w: 1000px; margin: 30px auto; padding: 0 20px; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        main { max-w: 1100px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; height: fit-content; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
         th { background-color: #f8fafc; color: #64748b; font-weight: bold; }
-        .badge { background-color: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
-        .btn-refresh { background-color: #3b82f6; color: white; padding: 10px 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        input, select { width: 100%; padding: 8px; margin: 5px 0 15px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+        .btn { width: 100%; background-color: #2563eb; color: white; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn:hover { background-color: #1d4ed8; }
+        .btn-refresh { background-color: #475569; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; }
+        .badge { background-color: #dcfce7; color: #15803d; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <nav>
         <div>
-            <h1 style="margin: 0; font-size: 18px;">🏦 Espace Suivi Bancaire — AgroCrédit</h1>
-            <small style="opacity: 0.7;">Vue d'ensemble des agences d'Ambam & Kyé-Ossi</small>
+            <h1 style="margin: 0; font-size: 18px;">🏦 Espace Suivi Bancaire & Enregistrement — AgroCrédit</h1>
+            <small style="opacity: 0.7;">Gestion de la Vallée-du-Ntem (Ambam & Kyé-Ossi)</small>
         </div>
-        <button onclick="chargerTransactions()" class="btn-refresh">🔄 Rafraîchir la liste</button>
+        <button onclick="chargerClients()" class="btn-refresh">🔄 Actualiser les Comptes</button>
     </nav>
 
     <main>
+        <!-- 👤 Formulaire d'inscription des agriculteurs -->
         <div class="card">
-            <h2 style="margin-top: 0; font-size: 16px; color: #1e293b;">📋 Historique des versements d'épargne agricole reçus</h2>
-            <p style="font-size: 12px; color: #64748b;">Consultez les fonds sécurisés par le programme avant de valider les 85% de crédit de la banque.</p>
+            <h3 style="margin-top:0; color: #1e293b;">👤 Inscrire un Agriculteur</h3>
+            <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Ouvrez un dossier d'accompagnement pour un nouveau producteur de la région.</p>
+            
+            <label style="font-size: 12px; font-weight: bold;">Nom complet du producteur</label>
+            <input type="text" id="reg-name" placeholder="Ex: Isaac Tonfo">
+
+            <label style="font-size: 12px; font-weight: bold;">Adresse Email / Contact</label>
+            <input type="email" id="reg-email" placeholder="Ex: isaac@gmail.com">
+
+            <label style="font-size: 12px; font-weight: bold;">Filière choisie</label>
+            <select id="reg-filiere">
+                <option value="Élevage">Poulets de chair (Élevage)</option>
+                <option value="Agriculture">Maraîchage / Bananiers (Agriculture)</option>
+            </select>
+
+            <button onclick="enregistrerAgriculteur()" class="btn">Créer le compte d'accompagnement</button>
+        </div>
+
+        <!-- 🏦 Liste des clients et calcul des droits au crédit -->
+        <div class="card">
+            <h3 style="margin-top: 0; color: #1e293b;">📋 Portefeuille Clients & Droits au Crédit</h3>
+            <p style="font-size: 11px; color: #64748b;">Suivi des dépôts réglementaires et calcul instantané de la ligne de crédit à débloquer.</p>
             
             <table>
                 <thead>
                     <tr>
-                        <th>N°</th>
-                        <th>Bénéficiaire</th>
-                        <th>Montant Épargné</th>
-                        <th>Référence Orange Money</th>
-                        <th>Statut Validation</th>
+                        <th>ID</th>
+                        <th>Nom du Producteur</th>
+                        <th>Filière</th>
+                        <th>Total Épargné</th>
+                        <th>Droit au Crédit (85%)</th>
+                        <th>Suivi Conseils</th>
                     </tr>
                 </thead>
-                <tbody id="table-body">
-                    <tr>
-                        <td colspan="5" style="text-align: center; color: #94a3b8; font-style: italic;">Aucun versement enregistré pour le moment.</td>
-                    </tr>
+                <tbody id="table-clients-body">
+                    <!-- Rempli automatiquement -->
                 </tbody>
             </table>
         </div>
     </main>
 
     <script>
-        async function chargerTransactions() {
-            const tbody = document.getElementById('table-body');
+        const serverUrl = "http://127.0.0.1:8000"; // En local. Deviendra relatif sur Render.
+
+        // Fonction pour charger la liste des clients et calculer les 85%
+        async function chargerClients() {
+            const tbody = document.getElementById('table-clients-body');
             try {
-                // Utilisation d'une adresse relative car le fichier est hébergé sur le même serveur
-                const response = await fetch("/api/admin/transactions");
+                const response = await fetch("/api/admin/clients");
                 const data = await response.json();
 
-                if (data.transactions && data.transactions.length > 0) {
+                if (data.clients && data.clients.length > 0) {
                     tbody.innerHTML = "";
-                    data.transactions.forEach((tx, index) => {
+                    data.clients.forEach(client => {
+                        // Calcul automatique des 85 %
+                        const droitCredit = Math.floor(client.total_epargne * 0.85);
+
                         tbody.innerHTML += `
                             <tr>
-                                <td>${index + 1}</td>
-                                <td><strong>Jean Du Terrain</strong> (Ambam)</td>
-                                <td style="font-weight: bold; color: #166534;">${tx.amount.toLocaleString('fr-FR')} CFA</td>
-                                <td style="font-family: monospace; font-weight: bold;">${tx.transaction_ref}</td>
-                                <td><span class="badge">Validé par l'App</span></td>
+                                <td>#00${client.id}</td>
+                                <td><strong>${client.full_name}</strong><br><small style="color:#64748b;">${client.email}</small></td>
+                                <td>${client.filiere}</td>
+                                <td style="font-weight: bold; color: #1e293b;">${client.total_epargne.toLocaleString('fr-FR')} CFA</td>
+                                <td style="font-weight: bold; color: #166534; background-color: #f0fdf4;">${droitCredit.toLocaleString('fr-FR')} CFA</td>
+                                <td><span class="badge">Actif (100%)</span></td>
                             </tr>
                         `;
                     });
                 } else {
-                    tbody.innerHTML = 'tr><td colspan="5" style="text-align: center; color: #94a3b8; font-style: italic;">Aucun versement enregistré pour le moment.</td></tr>';
+                    tbody.innerHTML = 'tr><td colspan="6" style="text-align: center; color: #94a3b8;">Aucun client enregistré.</td></tr>';
                 }
             } catch (error) {
                 console.error("Erreur de chargement", error);
             }
         }
 
-        window.onload = chargerTransactions;
+        // Fonction pour envoyer l'inscription au backend Python
+        async function enregistrerAgriculteur() {
+            const nameInput = document.getElementById('reg-name');
+            const emailInput = document.getElementById('reg-email');
+            const filiereInput = document.getElementById('reg-filiere');
+
+            if (nameInput.value.trim() === "" || emailInput.value.trim() === "") {
+                alert("⚠️ Erreur : Veuillez remplir tous les champs du formulaire.");
+                return;
+            }
+
+            try {
+                const response = await fetch("/api/register", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        full_name: nameInput.value.trim(),
+                        email: emailInput.value.trim(),
+                        filiere: filiereInput.value
+                    })
+                });
+
+                if (response.ok) {
+                    alert("✅ Succès ! L'agriculteur a été enregistré dans le programme.");
+                    nameInput.value = "";
+                    emailInput.value = "";
+                    chargerClients(); // Rafraîchir instantanément le tableau
+                } else {
+                    alert("❌ Échec de l'enregistrement.");
+                }
+            } catch (error) {
+                alert("❌ Erreur de connexion avec le serveur.");
+            }
+        }
+
+        window.onload = chargerClients;
     </script>
 </body>
 </html>
