@@ -1,47 +1,53 @@
 import os
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 app = FastAPI(title="AgroCrédit Suivi")
 
 # Bases de données temporaires en mémoire locale
 base_donnees_clients = [
-    {"id": "1", "full_name": "Jean Du Terrain", "email": "jean@terrain.cm", "filiere": "Élevage", "total_epargne": 20000}
+    {"id": "1", "full_name": "Jean Du Terrain", "email": "jean@terrain.cm", "filiere": "Poulet de chair", "total_epargne": 20000, "garantie_type": "Caution Fonctionnaire", "garantie_details": "Aval de M. Ndong, Enseignant au Lycée (Matricule X-123)"}
 ]
 base_donnees_epargne = [
     {"user_id": "1", "amount": 20000, "transaction_ref": "699418222"}
 ]
 
-# 1. Mettez à jour le modèle pour accepter les nouvelles données de garantie
 class ClientRegister(BaseModel):
     full_name: str
     email: str
     filiere: str
-    garantie_type: str        # 'Fonctionnaire', 'Titre Foncier', 'Matériel Roulant'
-    garantie_details: str     # Ex: "Aval de M. Ndong, Enseignant Lycée d'Ambam (CACI 450k)"
+    garantie_type: str
+    garantie_details: str
 
 class DépôtOrangeMoney(BaseModel):
     user_id: str
     amount: float
     transaction_ref: str
 
-# Chemins des fichiers HTML
+# Configuration des chemins vers le dossier frontend
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(CURRENT_DIR)
 FRONTEND_DIR = os.path.join(PARENT_DIR, "frontend")
 
+# 📂 CONFIGURATION CRUCIALE : Autoriser FastAPI à servir le fichier style.css et les fichiers JS
+app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+# 🌐 1. ADRESSE CLIENT : Accessible sur la racine du serveur
 @app.get("/", response_class=HTMLResponse)
 def lire_espace_client():
     with open(os.path.join(FRONTEND_DIR, "index.html"), "r", encoding="utf-8") as f:
         return f.read()
 
+# 🌐 2. ADRESSE BANQUE : Accessible sur /admin
 @app.get("/admin", response_class=HTMLResponse)
 def lire_espace_banque():
     with open(os.path.join(FRONTEND_DIR, "admin.html"), "r", encoding="utf-8") as f:
         return f.read()
 
-# 🚜 Route API : Charger le conseil agropastoral
+# --- ROUTES API ---
+
 @app.get("/api/tips/elevage")
 def obtenir_conseil():
     return {
@@ -49,7 +55,6 @@ def obtenir_conseil():
         "content": "Pendant la saison des pluies dans la Vallée-du-Ntem, préchauffez le poulailler 24h avant l'arrivée des poussins. Utilisez des lampes chauffantes."
     }
 
-# 👤 Route API : Inscrire un nouvel agriculteur
 @app.post("/api/register")
 def inscrire_client(client: ClientRegister):
     nouvel_id = str(len(base_donnees_clients) + 1)
@@ -58,33 +63,22 @@ def inscrire_client(client: ClientRegister):
         "full_name": client.full_name,
         "email": client.email,
         "filiere": client.filiere,
-        "total_epargne": 0
+        "total_epargne": 0,
+        "garantie_type": client.garantie_type,
+        "garantie_details": client.garantie_details
     }
     base_donnees_clients.append(nouveau_client)
-    return {"status": "success", "message": "Agriculteur inscrit avec succès", "client": nouveau_client}
+    return {"status": "success", "client": nouveau_client}
 
-# 💰 Route API : Enregistrer un versement Orange Money
-# Dans backend/main.py, modifiez les routes de calcul ou d'affichage
-
-# Nouvelle règle de validation : Minimum 20 000 FCFA / mois
 @app.post("/api/save/orange")
 def enregistrer_epargne(depot: DépôtOrangeMoney):
-    # Changement du seuil minimal à 20 000 CFA selon vos nouvelles directives
     if depot.amount < 20000:
-        raise HTTPException(status_code=400, detail="Le montant minimum d'épargne mensuel est de 20 000 CFA.")
+        raise HTTPException(status_code=400, detail="L'épargne mensuelle doit être d'au moins 20 000 CFA.")
     
-    # ... (reste du code d'enregistrement inchangé)
-    
-    # Trouver le client et ajouter le montant
-    client_trouve = False
     for client in base_donnees_clients:
         if client["id"] == depot.user_id:
             client["total_epargne"] += depot.amount
-            client_trouve = True
             break
-            
-    if not client_trouve:
-        raise HTTPException(status_code=404, detail="Agriculteur introuvable.")
 
     base_donnees_epargne.append({
         "user_id": depot.user_id,
@@ -93,12 +87,10 @@ def enregistrer_epargne(depot: DépôtOrangeMoney):
     })
     return {"status": "success"}
 
-# 🏦 Route API : Permettre à la banque de lister tous les clients et leurs calculs de crédit
 @app.get("/api/admin/clients")
 def obtenir_tous_les_clients():
     return {"clients": base_donnees_clients}
 
- # 2. Mettez à jour la route d'évaluation pour inclure ces garanties dans le rapport
 @app.get("/api/admin/evaluation/{client_id}")
 def evaluer_projet_bancable(client_id: str):
     modeles_rentabilite = {
@@ -110,31 +102,21 @@ def evaluer_projet_bancable(client_id: str):
         "Cacao": {"cycle": "Entretien/Production", "invest": 1000000, "ca": 1800000, "charges": 450000},
         "Manioc": {"cycle": "Transformation", "invest": 1000000, "ca": 1500000, "charges": 350000}
     }
-
-    client_cible = None
-    for client in base_donnees_clients:
-        if client["id"] == client_id:
-            client_cible = client
-            break
-
+    client_cible = next((c for c in base_donnees_clients if c["id"] == client_id), None)
     if not client_cible:
         raise HTTPException(status_code=404, detail="Client introuvable.")
-
-    speculation = client_cible["filiere"]
-    modele = modeles_rentabilite.get(speculation, {"cycle": "Indéfini", "invest": 1000000, "ca": 1300000, "charges": 400000})
-    benefice_previsionnel_net = modele["ca"] - modele["charges"] - modele["invest"]
-    
+    modele = modeles_rentabilite.get(client_cible["filiere"], {"cycle": "Indéfini", "invest": 1000000, "ca": 1300000, "charges": 400000})
     return {
         "client_name": client_cible["full_name"],
-        "speculation": speculation,
+        "speculation": client_cible["filiere"],
         "cycle_exploitation": modele["cycle"],
         "budget_total_projet": modele["invest"],
         "apport_epargne_nette": 150000,
         "credit_sollicite_banque": 850000,
         "chiffre_affaires_prev": modele["ca"],
         "charges_exploitation_prev": modele["charges"],
-        "benefice_net_prev": benefice_previsionnel_net,
-        "garantie_type": client_cible.get("garantie_type", "Non spécifiée"),
-        "garantie_details": client_cible.get("garantie_details", "Aucun document fourni"),
+        "benefice_net_prev": modele["ca"] - modele["charges"] - modele["invest"],
+        "garantie_type": client_cible["garantie_type"],
+        "garantie_details": client_cible["garentie_details"] if "garentie_details" in client_cible else client_cible["garantie_details"],
         "statut_projet": "BANCABLE & SÉCURISÉ"
     }
