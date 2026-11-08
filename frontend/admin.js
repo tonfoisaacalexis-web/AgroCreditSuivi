@@ -1,7 +1,6 @@
-// Adresse officielle de communication avec votre serveur Render
-const serverUrl = "https://agrocreditsuivi.onrender.com";
+const serverUrl = "https://onrender.com";
 
-// 1. Charger la liste des clients et exécuter les calculs financiers lissés
+// 1. Charger le portefeuille de clients depuis le serveur Render
 async function chargerClients() {
     const tbody = document.getElementById('table-clients-body');
     try {
@@ -32,11 +31,11 @@ async function chargerClients() {
             tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #94a3b8;">Aucun client enregistré.</td></tr>';
         }
     } catch (error) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #b91c1c; font-weight: bold;">⚠️ Erreur de connexion avec le serveur.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #b91c1c; font-weight: bold;">⚠️ Erreur de connexion avec le serveur Render.</td></tr>';
     }
 }
 
-// 2. Inscription d'un nouvel agriculteur avec ses garanties terrain
+// 2. Transmettre l'inscription d'un nouvel agriculteur avec ses garanties d'octroi
 async function enregistrerAgriculteur() {
     const nameInput = document.getElementById('reg-name');
     const emailInput = document.getElementById('reg-email');
@@ -44,7 +43,6 @@ async function enregistrerAgriculteur() {
     const garantieTypeInput = document.getElementById('reg-garantie-type');
     const garantieDetailsInput = document.getElementById('reg-garantie-details');
 
-    // Vérification de sécurité locale
     if (nameInput.value.trim() === "" || emailInput.value.trim() === "" || garantieDetailsInput.value.trim() === "") {
         alert("⚠️ Erreur : Veuillez remplir toutes les informations, y compris le volet des garanties.");
         return;
@@ -68,7 +66,7 @@ async function enregistrerAgriculteur() {
             nameInput.value = "";
             emailInput.value = "";
             garantieDetailsInput.value = "";
-            chargerClients(); // Actualiser instantanément le tableau
+            chargerClients();
         } else {
             alert("❌ Échec de l'enregistrement.");
         }
@@ -77,7 +75,7 @@ async function enregistrerAgriculteur() {
     }
 }
 
-// 3. Génération du Canevas Projet Bancable avec analyse des risques pour l'agence
+// 3. Générer le canevas d'évaluation de projet de levier pour la banque
 async function analyserProjet(clientId) {
     const contentBox = document.getElementById('evaluation-content');
     contentBox.innerHTML = "<p style='font-style:italic;'>Analyse des indicateurs de viabilité et risques en cours...</p>";
@@ -116,5 +114,5 @@ async function analyserProjet(clientId) {
     }
 }
 
-// Lancer automatiquement le chargement du portefeuille à l'ouverture de l'écran
+// Chargement initial automatique
 window.onload = chargerClients;
