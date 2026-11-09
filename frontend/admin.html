@@ -69,7 +69,12 @@
             <h1 style="margin: 0; font-size: 18px;">🏦 Espace Suivi Bancaire & Enregistrement — AgroCrédit Suivi</h1>
             <small style="opacity: 0.7;">Gestion de la Vallée-du-Ntem (Ambam & Kyé-Ossi)</small>
         </div>
-        <button onclick="chargerClients()" class="btn-refresh">🔄 Actualiser les Comptes</button>
+        <!-- Bandeau d'actions bancaires alignées à droite -->
+        <div style="display: flex; gap: 10px;">
+            <button onclick="exporterVersExcel()" style="background-color: #10b981; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 5px;">📊 Exporter Excel</button>
+            <button onclick="window.print()" class="btn-print-action" style="background-color: #475569; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 5px;">🖨️ Imprimer PDF</button>
+            <button onclick="chargerClients()" class="btn-refresh">🔄 Actualiser les Comptes</button>
+        </div>
     </nav>
 
     <main>
