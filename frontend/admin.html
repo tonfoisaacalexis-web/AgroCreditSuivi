@@ -20,9 +20,47 @@
         .btn-eval:hover { background-color: #166534; }
         .badge { background-color: #dcfce7; color: #15803d; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
         .badge-frais { background-color: #fee2e2; color: #991b1b; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        
+        /* Dissimuler les boutons et formulaires inutiles lors de la génération du PDF physique */
+        @media print {
+            body { background-color: white; }
+            nav, .btn-refresh, main > div:nth-child(1), main > div:nth-child(2), .btn-print-action { display: none !important; }
+            main { display: block; margin: 0; padding: 0; }
+            .card { border: none; box-shadow: none; padding: 0; }
+        }
     </style>
-    <!-- Chargement dynamique depuis le point de montage statique de FastAPI -->
+    
+    <!-- 1. Chargement de l'API logique externe -->
     <script src="/static/admin.js" defer></script>
+
+    <!-- 2. Bloc JavaScript distinct dédié à la barrière de sécurité -->
+    <script>
+        function securiserPortail() {
+            const motDePasseAttendu = "Ambam2026";
+            let tentative = prompt("🏦 PORTAIL AGROCRÉDIT SÉCURISÉ\nVeuillez saisir le code d'accès de l'agence :");
+
+            if (tentative !== motDePasseAttendu) {
+                alert("❌ Code incorrect. Accès refusé.");
+                document.body.innerHTML = `
+                    <div style="text-align:center; margin-top:100px; font-family:sans-serif; color:#b91c1c;">
+                        <h1>⚠️ Accès Restreint</h1>
+                        <p>Cet espace est réservé exclusivement aux agents de crédit agréés de la banque.</p>
+                        <button onclick="window.location.reload()" style="background:#2563eb; color:white; border:none; padding:10px 15px; border-radius:6px; font-weight:bold; cursor:pointer; margin-top:15px;">Réessayer la connexion</button>
+                    </div>
+                `;
+            } else {
+                // Si l'accès est validé, on appelle la fonction globale de admin.js
+                if (typeof chargerClients === "function") {
+                    chargerClients();
+                } else {
+                    // Sécurité si le script externe met du temps à se charger avec le mot de passe
+                    setTimeout(chargerClients, 300);
+                }
+            }
+        }
+
+        window.onload = securiserPortail;
+    </script>
 </head>
 <body>
 
