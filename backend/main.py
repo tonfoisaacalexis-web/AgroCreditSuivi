@@ -12,12 +12,12 @@ PARENT_DIR = os.path.dirname(CURRENT_DIR)
 FRONTEND_DIR = os.path.join(PARENT_DIR, "frontend")
 DB_PATH = os.path.join(CURRENT_DIR, "agrocredit.db")
 
-# 🔥 METTEZ À JOUR LA FONCTION D'INITIALISATION DANS main.py :
+# 🔥 REMPLACEZ LA FONCTION initialiser_base_de_donnees DANS main.py PAR CELLE-CI :
 def initialiser_base_de_donnees():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    # 🛡️ Table de sécurité des accès agences
+    # Table de sécurité des accès agences
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS agences_autorisees (
             code_securite TEXT PRIMARY KEY,
@@ -49,11 +49,21 @@ def initialiser_base_de_donnees():
         )
     """)
     
-    # Génération automatique des premiers accès de production sécurisés si la table est vide
+    # Table des transactions Orange Money
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            amount INTEGER NOT NULL,
+            transaction_ref TEXT NOT NULL UNIQUE
+        )
+    """)
+    
+    # Génération automatique des accès de production (departement corrigé)
     cursor.execute("SELECT COUNT(*) FROM agences_autorisees")
     if cursor.fetchone()[0] == 0:
         cursor.executemany("""
-            INSERT INTO agences_autorisees (code_securite, banque_nom, agence_nom, localite, arrondissement, department, region)
+            INSERT INTO agences_autorisees (code_securite, banque_nom, agence_nom, localite, arrondissement, departement, region)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """, [
             ('REG-AMB-2026X', 'La Régionale', 'Ambam', 'Ambam', 'Ambam', 'Vallée-du-Ntem', 'Sud'),
@@ -62,6 +72,8 @@ def initialiser_base_de_donnees():
         ])
     conn.commit()
     conn.close()
+
+initialiser_base_de_donnees()
 
 # 🔥 AJOUTEZ CETTE ROUTE DE VÉRIFICATION DYNAMIQUE DANS main.py :
 class DemandeConnexion(BaseModel):
