@@ -78,13 +78,11 @@ def enregistrer_epargne(depot: DépôtOrangeMoney):
     if depot.amount < 20000:
         raise HTTPException(status_code=400, detail="L'épargne mensuelle doit être d'au moins 20 000 CFA.")
     
-    # 1. Conversion de sécurité de l'user_id en entier pour correspondre au type int4 de PostgreSQL
     try:
         user_id_num = int(depot.user_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="L'identifiant de l'agriculteur doit être un nombre valide.")
+        raise HTTPException(status_code=400, detail="L'identifiant doit être un nombre valide.")
 
-    # 2. Récupérer le solde actuel du client avec le bon format numérique
     url_client = f"{SUPABASE_URL}/rest/v1/clients?id=eq.{user_id_num}"
     res_client = requests.get(url_client, headers=HEADERS)
     
@@ -94,12 +92,10 @@ def enregistrer_epargne(depot: DépôtOrangeMoney):
     client_data = res_client.json()[0]
     nouveau_solde = int(client_data["total_epargne"]) + depot.amount
 
-    # 3. Mettre à jour le solde dans PostgreSQL
     res_patch = requests.patch(url_client, headers=HEADERS, json={"total_epargne": nouveau_solde})
     if res_patch.status_code not in:
-         raise HTTPException(status_code=500, detail="Échec de la mise à jour du solde d'épargne.")
+        raise HTTPException(status_code=500, detail="Échec de la mise à jour du solde d'épargne.")
 
-    # 4. Archiver la transaction Orange Money
     url_tx = f"{SUPABASE_URL}/rest/v1/transactions"
     requests.post(url_tx, headers=HEADERS, json={
         "user_id": str(user_id_num),
