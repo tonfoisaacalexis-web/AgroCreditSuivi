@@ -5,6 +5,9 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+# Importation directe de votre fichier de mots de passe sécurisés
+from mdp import AGENCES_AUTORISEES
+
 app = FastAPI(title="AgroCrédit Suivi - Édition Universelle")
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -12,25 +15,9 @@ PARENT_DIR = os.path.dirname(CURRENT_DIR)
 FRONTEND_DIR = os.path.join(PARENT_DIR, "frontend")
 DB_PATH = os.path.join(CURRENT_DIR, "agrocredit.db")
 
-# 🔥 REMPLACEZ LA FONCTION initialiser_base_de_donnees DANS main.py PAR CELLE-CI :
 def initialiser_base_de_donnees():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
-    # Table de sécurité des accès agences
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS agences_autorisees (
-            code_securite TEXT PRIMARY KEY,
-            banque_nom TEXT NOT NULL,
-            agence_nom TEXT NOT NULL,
-            localite TEXT NOT NULL,
-            arrondissement TEXT NOT NULL,
-            departement TEXT NOT NULL,
-            region TEXT NOT NULL
-        )
-    """)
-    
-    # Table des clients
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS clients (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,8 +35,6 @@ def initialiser_base_de_donnees():
             region TEXT
         )
     """)
-    
-    # Table des transactions Orange Money
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS transactions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -58,53 +43,31 @@ def initialiser_base_de_donnees():
             transaction_ref TEXT NOT NULL UNIQUE
         )
     """)
-    
-    # Génération automatique des accès de production (departement corrigé)
-    cursor.execute("SELECT COUNT(*) FROM agences_autorisees")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany("""
-            INSERT INTO agences_autorisees (code_securite, banque_nom, agence_nom, localite, arrondissement, departement, region)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, [
-            ('REG-AMB-2026X', 'La Régionale', 'Ambam', 'Ambam', 'Ambam', 'Vallée-du-Ntem', 'Sud'),
-            ('AFB-KYO-7741B', 'Afriland First Bank', 'Kyé-Ossi', 'Kyé-Ossi', 'Kyé-Ossi', 'Vallée-du-Ntem', 'Sud'),
-            ('BGB-OLA-9952C', 'BANGE Bank', 'Olamze', 'Olamze', 'Olamze', 'Vallée-du-Ntem', 'Sud')
-        ])
     conn.commit()
     conn.close()
 
 initialiser_base_de_donnees()
 
-# 🔥 AJOUTEZ CETTE ROUTE DE VÉRIFICATION DYNAMIQUE DANS main.py :
-class DemandeConnexion(BaseModel):
-    code_securite: str
-
-@app.post("/api/admin/login")
-def verifier_code_agence(demande: DemandeConnexion):
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM agences_autorisees WHERE code_securite = ?", (demande.code_securite.strip(),))
-    agence = cursor.fetchone()
-    conn.close()
-    
-    if not agence:
-        raise HTTPException(status_code=401, detail="Code de sécurité d'agence invalide ou révoqué.")
-        
-    return {
-        "status": "success",
-        "banque_nom": agence["banque_nom"],
-        "agence_nom": agence["agence_nom"],
-        "localite": agence["localite"],
-        "arrondissement": agence["arrondissement"],
-        "departement": agence["departement"],
-        "region": agence["region"]
-    }
+class ClientRegister(BaseModel):
+    full_name: str
+    email: str
+    filiere: str
+    garantie_type: str
+    garantie_details: str
+    banque_nom: str
+    agence_nom: str
+    localite: str
+    arrondissement: str
+    departement: str
+    region: str
 
 class DépôtOrangeMoney(BaseModel):
     user_id: str
     amount: float
     transaction_ref: str
+
+class DemandeConnexion(BaseModel):
+    code_securite: str
 
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
@@ -118,18 +81,32 @@ def lire_espace_banque():
     with open(os.path.join(FRONTEND_DIR, "admin.html"), "r", encoding="utf-8") as f:
         return f.read()
 
-# 👤 INSCRIPTION : Liaison explicite avec la banque et l'agence émettrice
+# 🔑 VERIFICATION DES ACCÈS PAR MODULE EXTERNE (Immunisé contre les coupures)
+@app.post("/api/admin/login")
+def verifier_code_agence(demande: DemandeConnexion):
+    code = demande.code_securite.strip()
+    if code not in AGENCES_AUTORISEES:
+        raise HTTPException(status_code=401, detail="Code de sécurité d'agence invalide.")
+    
+    agence = AGENCES_AUTORISEES[code]
+    return {
+        "status": "success",
+        "banque_nom": agence["banque_nom"],
+        "agence_nom": agence["agence_nom"],
+        "localite": agence["localite"],
+        "arrondissement": agence["arrondissement"],
+        "departement": agence["departement"],
+        "region": agence["region"]
+    }
+
 @app.post("/api/register")
 def inscrire_client(client: ClientRegister):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
-    # Sécurité anti-doublon par e-mail au sein d'une même agence
     cursor.execute("SELECT id FROM clients WHERE LOWER(email) = ? AND LOWER(agence_nom) = ?", (client.email.strip().lower(), client.agence_nom.strip().lower()))
     if cursor.fetchone():
         conn.close()
         raise HTTPException(status_code=400, detail="Cet agriculteur est déjà enregistré dans cette agence.")
-        
     try:
         cursor.execute("""
             INSERT INTO clients (full_name, email, filiere, total_epargne, garantie_type, garantie_details, banque_nom, agence_nom, localite, arrondissement, departement, region)
@@ -156,8 +133,7 @@ def enregistrer_epargne(depot: DépôtOrangeMoney):
         raise HTTPException(status_code=404, detail="Agriculteur introuvable.")
     nouveau_solde = row[0] + int(depot.amount)
     try:
-        cursor.execute("INSERT INTO transactions (user_id, amount, transaction_ref) VALUES (?, ?, ?)",
-                       (depot.user_id, int(depot.amount), depot.transaction_ref.upper()))
+        cursor.execute("INSERT INTO transactions (user_id, amount, transaction_ref) VALUES (?, ?, ?)", (depot.user_id, int(depot.amount), depot.transaction_ref.upper()))
         cursor.execute("UPDATE clients SET total_epargne = ? WHERE id = ?", (nouveau_solde, depot.user_id))
         conn.commit()
     except sqlite3.IntegrityError:
@@ -169,7 +145,6 @@ def enregistrer_epargne(depot: DépôtOrangeMoney):
     conn.close()
     return {"status": "success"}
 
-# 🏦 PORTFEUILLE FILTRÉ : Renvoie exclusivement les clients de la banque et de l'agence sélectionnée
 @app.get("/api/admin/clients")
 def obtenir_tous_les_clients(banque: str = "La Régionale", agence: str = "Ambam"):
     conn = sqlite3.connect(DB_PATH)
@@ -180,18 +155,11 @@ def obtenir_tous_les_clients(banque: str = "La Régionale", agence: str = "Ambam
     comptes = list()
     for row in rows:
         comptes.append({
-            "id": str(row["id"]),
-            "full_name": row["full_name"],
-            "email": row["email"],
-            "filiere": row["filiere"],
-            "total_epargne": row["total_epargne"],
-            "garantie_type": row["garantie_type"],
-            "garantie_details": row["garantie_details"]
+            "id": str(row["id"]), "full_name": row["full_name"], "email": row["email"], "filiere": row["filiere"], "total_epargne": row["total_epargne"], "garantie_type": row["garantie_type"], "garantie_details": row["garantie_details"]
         })
     conn.close()
     return {"clients": comptes}
 
-# 📊 EVALUATION FINANCIÈRE RECALCULÉE AVEC LES 2 MOIS DE GRÂCE COBAC
 @app.get("/api/admin/evaluation/{client_id}")
 def evaluer_projet_bancable(client_id: str):
     modeles_rentabilite = {
@@ -209,10 +177,8 @@ def evaluer_projet_bancable(client_id: str):
     cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
     row = cursor.fetchone()
     conn.close()
-    
     if not row:
         raise HTTPException(status_code=404, detail="Client introuvable.")
-        
     modele = modeles_rentabilite.get(row["filiere"], {"cycle": "Indéfini", "invest": 1000000, "ca": 1400000, "charges": 350000})
     credit_sollicite = 850000
     duree_totale = 12
@@ -220,26 +186,6 @@ def evaluer_projet_bancable(client_id: str):
     mois_remboursement_effectif = duree_totale - mois_differe
     total_interets = int(credit_sollicite * 0.01 * duree_totale)
     mensualite_globale = int((credit_sollicite + total_interets) / mois_remboursement_effectif)
-    
     return {
-        "client_name": row["full_name"],
-        "speculation": row["filiere"],
-        "cycle_exploitation": modele["cycle"],
-        "budget_total_projet": 1000000,
-        "apport_epargne_nette": 150000,
-        "credit_sollicite_banque": credit_sollicite,
-        "chiffre_affaires_prev": modele["ca"],
-        "charges_exploitation_prev": modele["charges"],
-        "benefice_net_prev": modele["ca"] - modele["charges"] - 1000000,
-        "garantie_type": row["garantie_type"],
-        "garantie_details": row["garantie_details"],
-        "statut_projet": "BANCABLE & SÉCURISÉ",
-        "duree_mois": duree_totale,
-        "differe_mois": mois_differe,
-        "mensualite": mensualite_globale,
-        "total_interets": total_interets,
-        "taux_annuel": "12%",
-        "banque_nom": row["banque_nom"],
-        "agence_nom": row["agence_nom"],
-        "localite": row["localite"]
+        "client_name": row["full_name"], "speculation": row["filiere"], "cycle_exploitation": modele["cycle"], "budget_total_projet": 1000000, "apport_epargne_nette": 150000, "credit_sollicite_banque": credit_sollicite, "chiffre_affaires_prev": modele["ca"], "charges_exploitation_prev": modele["charges"], "benefice_net_prev": modele["ca"] - modele["charges"] - 1000000, "garantie_type": row["garantie_type"], "garantie_details": row["garantie_details"], "statut_projet": "BANCABLE & SÉCURISÉ", "duree_mois": duree_totale, "differe_mois": mois_differe, "mensualite": mensualite_globale, "total_interets": total_interets, "taux_annuel": "12%", "banque_nom": row["banque_nom"], "agence_nom": row["agence_nom"], "localite": row["localite"]
     }
