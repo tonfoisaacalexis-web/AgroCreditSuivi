@@ -187,5 +187,24 @@ def evaluer_projet_bancable(client_id: str):
     total_interets = int(credit_sollicite * 0.01 * duree_totale)
     mensualite_globale = int((credit_sollicite + total_interets) / mois_remboursement_effectif)
     return {
-        "client_name": row["full_name"], "speculation": row["filiere"], "cycle_exploitation": modele["cycle"], "budget_total_projet": 1000000, "apport_epargne_nette": 150000, "credit_sollicite_banque": credit_sollicite, "chiffre_affaires_prev": modele["ca"], "charges_exploitation_prev": modele["charges"], "benefice_net_prev": modele["ca"] - modele["charges"] - 1000000, "garantie_type": row["garantie_type"], "garantie_details": row["garantie_details"], "statut_projet": "BANCABLE & SÉCURISÉ", "duree_mois": duree_totale, "differe_mois": mois_differe, "mensualite": mensualite_globale, "total_interets": total_interets, "taux_annuel": "12%", "banque_nom": row["banque_nom"], "agence_nom": row["agence_nom"], "localite": row["localite"]
+        "client_name": row["full_name"],
+        "speculation": row["filiere"],
+        "cycle_exploitation": modele["cycle"],
+        "budget_total_projet": 1000000,
+        "apport_epargne_nette": 150000,
+        "credit_sollicite_banque": credit_sollicite,
+        "chiffre_affaires_prev": modele["ca"],
+        "charges_exploitation_prev": modele["charges"],
+        "benefice_net_prev": modele["ca"] - modele["charges"] - 1000000,
+        "garantie_type": row["garantie_type"],
+        "garantie_details": row["garantie_details"],
+        "statut_projet": "BANCABLE & SÉCURISÉ",
+        "duree_mois": duree_totale,
+        "differe_mois": mois_differe,
+        "mensualite": mensualite_globale,
+        "total_interets": total_interets,
+        "taux_annuel": "12%",
+        "banque_nom": row["banque_nom"],
+        "agence_nom": row["agence_nom"],
+        "localite": row["localite"]
     }
