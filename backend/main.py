@@ -72,28 +72,37 @@ def inscrire_client(client: ClientRegister):
         raise HTTPException(status_code=500, detail="Échec de l'enregistrement dans la base PostgreSQL Supabase.")
     return {"status": "success", "client": response.json()[0]}
 
-# 💰 VERSEMENT : Mise à jour du solde de l'agriculteur dans la base de données
+# 🔥 REMPLACEZ LA ROUTE POST /api/save/orange DANS main.py PAR CELLE-CI :
 @app.post("/api/save/orange")
 def enregistrer_epargne(depot: DépôtOrangeMoney):
     if depot.amount < 20000:
         raise HTTPException(status_code=400, detail="L'épargne mensuelle doit être d'au moins 20 000 CFA.")
     
-    # 1. Récupérer le solde actuel du client
-    url_client = f"{SUPABASE_URL}/rest/v1/clients?id=eq.{depot.user_id}"
+    # 1. Conversion de sécurité de l'user_id en entier pour correspondre au type int4 de PostgreSQL
+    try:
+        user_id_num = int(depot.user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="L'identifiant de l'agriculteur doit être un nombre valide.")
+
+    # 2. Récupérer le solde actuel du client avec le bon format numérique
+    url_client = f"{SUPABASE_URL}/rest/v1/clients?id=eq.{user_id_num}"
     res_client = requests.get(url_client, headers=HEADERS)
+    
     if res_client.status_code != 200 or not res_client.json():
-        raise HTTPException(status_code=404, detail="Agriculteur introuvable.")
+        raise HTTPException(status_code=404, detail="Agriculteur introuvable dans la base PostgreSQL.")
     
     client_data = res_client.json()[0]
-    nouveau_solde = client_data["total_epargne"] + depot.amount
+    nouveau_solde = int(client_data["total_epargne"]) + depot.amount
 
-    # 2. Mettre à jour le solde dans PostgreSQL
-    requests.patch(url_client, headers=HEADERS, json={"total_epargne": nouveau_solde})
+    # 3. Mettre à jour le solde dans PostgreSQL
+    res_patch = requests.patch(url_client, headers=HEADERS, json={"total_epargne": nouveau_solde})
+    if res_patch.status_code not in:
+         raise HTTPException(status_code=500, detail="Échec de la mise à jour du solde d'épargne.")
 
-    # 3. Archiver la transaction Orange Money
+    # 4. Archiver la transaction Orange Money
     url_tx = f"{SUPABASE_URL}/rest/v1/transactions"
     requests.post(url_tx, headers=HEADERS, json={
-        "user_id": depot.user_id,
+        "user_id": str(user_id_num),
         "amount": depot.amount,
         "transaction_ref": depot.transaction_ref.upper()
     })
