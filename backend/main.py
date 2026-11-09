@@ -134,18 +134,18 @@ def enregistrer_epargne(depot: DépôtOrangeMoney):
     conn.close()
     return {"status": "success"}
 
-# 🏦 PORTFEUILLE : Lecture complète de la base SQLite
+# 🏦 PORTFEUILLE : Lecture complète de la base SQLite (Version sécurisée sans coupure)
 @app.get("/api/admin/clients")
 def obtenir_tous_les_clients():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM clients")
+    cursor.execute("SELECT id, full_name, email, filiere, total_epargne, garantie_type, garantie_details FROM clients")
     rows = cursor.fetchall()
     
-    liste_clients = []
+    comptes_enregistres = []
     for row in rows:
-        liste_clients.append({
+        comptes_enregistres.append({
             "id": str(row["id"]),
             "full_name": row["full_name"],
             "email": row["email"],
@@ -155,8 +155,7 @@ def obtenir_tous_les_clients():
             "garantie_details": row["garantie_details"]
         })
     conn.close()
-    return {"clients": liste_clients}
-
+    return {"clients": comptes_enregistres}
 # 📊 EVALUATION : Calcul de viabilité et d'échéances lissées
 @app.get("/api/admin/evaluation/{client_id}")
 def evaluer_projet_bancable(client_id: str):
