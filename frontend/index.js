@@ -1,7 +1,7 @@
 let totalEpargne = 0;
-const serverUrl = ""; // Utilise automatiquement l'adresse actuelle du serveur
+const serverUrl = ""; // Adresse relative universelle pour fusionner les requêtes
 
-// 1. Charger automatiquement le conseil agropastoral actif depuis Python
+// 1. Charger le conseil agropastoral actif depuis Python
 async function chargerConseilAgro() {
     const tipsBox = document.getElementById('agro-tips-box');
     try {
@@ -10,8 +10,8 @@ async function chargerConseilAgro() {
         
         tipsBox.innerHTML = `
             <div class="tip-box">
-                <strong style="display: block; margin-bottom: 5px;">` + data.title + `</strong>
-                ` + data.content + `
+                <strong style="display: block; margin-bottom: 5px;">${data.title}</strong>
+                ${data.content}
             </div>
         `;
     } catch (error) {
@@ -19,22 +19,16 @@ async function chargerConseilAgro() {
     }
 }
 
-// 🔥 REMPLACEZ LA FONCTION effectuerVersement DANS VOTRE admin.js OU index.js PAR CELLE-CI :
+// 2. Envoyer la transaction Orange Money
 async function effectuerVersement() {
-    const idInput = document.getElementById('client-id-input'); // Récupération du nouveau champ
+    const idInput = document.getElementById('client-id-input');
     const amountInput = document.getElementById('saving-amount');
     const refInput = document.getElementById('transaction-ref');
     const errorBox = document.getElementById('error-message');
     
-    const clientId = idInput.value.trim();
+    const clientId = idInput ? idInput.value.trim() : "1";
     const amount = parseInt(amountInput.value);
     const ref = refInput.value.trim();
-
-    if (clientId === "") {
-        errorBox.innerText = "⚠️ Identifiant requis : Veuillez saisir votre ID d'agriculteur.";
-        errorBox.style.display = "block";
-        return;
-    }
 
     if (isNaN(amount) || amount < 20000) {
         errorBox.innerText = "⚠️ Règle AgroCrédit : Le montant minimum d'épargne mensuel réglementaire est de 20 000 CFA.";
@@ -55,7 +49,7 @@ async function effectuerVersement() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                user_id: clientId, // ID PostgreSQL dynamique envoyé au serveur
+                user_id: clientId,
                 amount: amount, 
                 transaction_ref: ref 
             })
@@ -67,9 +61,20 @@ async function effectuerVersement() {
             throw new Error(result.detail || "Erreur de validation du serveur.");
         }
 
-        alert("✅ Succès ! Dépôt Orange Money validé et synchronisé à vie dans la base PostgreSQL Supabase.");
+        totalEpargne += amount;
+        
+        const nombreDeMois = Math.floor(totalEpargne / 20000);
+        const fraisFormation = nombreDeMois * 5000;
+        const epargneNette = totalEpargne - fraisFormation;
+        const droitCredit = epargneNette > 0 ? Math.floor((epargneNette / 0.15) * 0.85) : 0;
+
+        document.getElementById('display-savings').innerText = totalEpargne.toLocaleString('fr-FR') + " CFA";
+        document.getElementById('display-credit').innerText = droitCredit.toLocaleString('fr-FR') + " CFA";
+
         amountInput.value = "";
         refInput.value = "";
+
+        alert("✅ Succès ! Dépôt Orange Money validé et enregistré sur SQLite.");
 
     } catch (error) {
         errorBox.innerText = "❌ Échec : " + error.message;
