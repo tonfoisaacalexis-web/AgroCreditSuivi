@@ -81,21 +81,31 @@ def obtenir_conseil():
         "content": "Pendant la saison des pluies dans la Vallée-du-Ntem, préchauffez le poulailler 24h avant l'arrivée des poussins. Utilisez des lampes chauffantes."
     }
 
-# 👤 INSCRIPTION : Insertion directe dans SQLite
+# 👤 INSCRIPTION SÉCURISÉE : Blocage systématique des doublons par Email
 @app.post("/api/register")
 def inscrire_client(client: ClientRegister):
+    email_propre = client.email.strip().lower()
+    
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+    
+    # 🛡️ SÉCURITÉ 1 : Vérifier si cet email est déjà attribué dans SQLite
+    cursor.execute("SELECT id FROM clients WHERE LOWER(email) = ?", (email_propre,))
+    if cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=400, detail="⚠️ Cet agriculteur est déjà inscrit dans le portefeuille (Email existant).")
+    
     try:
         cursor.execute("""
             INSERT INTO clients (full_name, email, filiere, total_epargne, garantie_type, garantie_details)
             VALUES (?, ?, ?, 0, ?, ?)
-        """, (client.full_name, client.email, client.filiere, client.garantie_type, client.garantie_details))
+        """, (client.full_name.strip(), email_propre, client.filiere, client.garantie_type, client.garantie_details.strip()))
         conn.commit()
         nouvel_id = cursor.lastrowid
     except Exception:
         conn.close()
         raise HTTPException(status_code=500, detail="Erreur d'inscription en base SQLite.")
+        
     conn.close()
     return {"status": "success", "id": nouvel_id}
 

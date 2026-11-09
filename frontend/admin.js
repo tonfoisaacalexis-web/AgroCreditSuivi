@@ -36,13 +36,16 @@ async function chargerClients() {
     }
 }
 
-// 2. Transmettre l'inscription d'un nouvel agriculteur
+// 2. Transmettre l'inscription d'un nouvel agriculteur (Version Anti-Double Clic)
 async function enregistrerAgriculteur() {
     const nameInput = document.getElementById('reg-name');
     const emailInput = document.getElementById('reg-email');
     const filiereInput = document.getElementById('reg-filiere');
     const garantieTypeInput = document.getElementById('reg-garantie-type');
     const garantieDetailsInput = document.getElementById('reg-garantie-details');
+    
+    // Cibler le bouton pour le geler
+    const boutonSoumission = document.querySelector(".card .btn");
 
     if (nameInput.value.trim() === "" || emailInput.value.trim() === "" || garantieDetailsInput.value.trim() === "") {
         alert("⚠️ Erreur : Veuillez remplir toutes les informations, y compris le volet des garanties.");
@@ -50,6 +53,10 @@ async function enregistrerAgriculteur() {
     }
 
     try {
+        // 🛡️ SÉCURITÉ 2 : Désactiver le bouton et afficher un sablier
+        boutonSoumission.disabled = true;
+        boutonSoumission.innerText = "⏳ Inscription en cours...";
+
         const response = await fetch(serverUrl + "/api/register", {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -62,6 +69,8 @@ async function enregistrerAgriculteur() {
             })
         });
 
+        const result = await response.json();
+
         if (response.ok) {
             alert("✅ Succès ! L'agriculteur a été inscrit dans la base de données.");
             nameInput.value = "";
@@ -69,10 +78,15 @@ async function enregistrerAgriculteur() {
             garantieDetailsInput.value = "";
             chargerClients();
         } else {
-            alert("❌ Échec de la validation par le serveur.");
+            // Afficher le message d'erreur précis (ex: Email déjà existant)
+            alert(result.detail || "❌ Échec de la validation par le serveur.");
         }
     } catch (error) {
         alert("❌ Erreur de connexion avec le serveur.");
+    } finally {
+        // 🛡️ Libérer le bouton après traitement
+        boutonSoumission.disabled = false;
+        boutonSoumission.innerText = "Créer le compte d'accompagnement";
     }
 }
 
