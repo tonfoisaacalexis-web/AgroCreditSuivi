@@ -28,3 +28,141 @@
         </div>
         <span style="background-color: #f97316; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; color: white;">Mode Orange Money</span>
     </nav>
+
+    <main>
+        <div>
+            <div class="card">
+                <h2 style="font-size: 14px; color: #64748b; margin-top: 0;">📈 Point de situation financière</h2>
+                <div class="grid-2">
+                    <div class="box-savings">
+                        <small>Total Épargné Brut</small>
+                        <div style="font-size: 24px; font-weight: bold; margin-top: 5px;" id="display-savings">0 CFA</div>
+                    </div>
+                    <div class="box-credit">
+                        <small>Droit au Crédit Levier (85%)</small>
+                        <div style="font-size: 24px; font-weight: bold; margin-top: 5px;" id="display-credit">0 CFA</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 style="font-size: 16px; margin-top: 0;">💰 Enregistrer un versement mensuel</h2>
+                <p style="font-size: 12px; color: #64748b;">Entrez le montant réglementaire d'épargne mensuel (Minimum 20 000 CFA).</p>
+                
+                <div id="error-message" class="error"></div>
+
+                <label style="font-size: 12px; font-weight: bold;">Votre Identifiant Unique d'Agriculteur (ID)</label>
+                <input type="text" id="client-id-input" placeholder="Ex: 1">
+
+                <label style="font-size: 12px; font-weight: bold;">Montant du versement (CFA)</label>
+                <input type="number" id="saving-amount" placeholder="Ex: 20000">
+
+                <label style="font-size: 12px; font-weight: bold;">Numéro de transaction Orange Money</label>
+                <input type="text" id="transaction-ref" placeholder="Ex: TXN987654321" style="text-transform: uppercase;">
+                
+                <button onclick="effectuerVersement()" class="btn">Confirmer le dépôt Orange Money</button>
+            </div>
+        </div>
+
+        <div>
+            <div class="card">
+                <h2 style="font-size: 14px; color: #64748b; margin-top: 0;">🚜 Conseil Agropastoral Actif</h2>
+                <div id="agro-tips-box">
+                    <p style="font-size: 12px; font-style: italic; color: #64748b;">Le conseil agropastoral est en cours de chargement...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script>
+        let totalEpargne = 0;
+        const serverUrl = ""; // Requête relative universelle
+
+        async function chargerConseilAgro() {
+            const tipsBox = document.getElementById('agro-tips-box');
+            try {
+                const response = await fetch(serverUrl + "/api/tips/elevage");
+                const data = await response.json();
+                
+                tipsBox.innerHTML = `
+                    <div class="tip-box">
+                        <strong style="display: block; margin-bottom: 5px;">` + data.title + `</strong>
+                        ` + data.content + `
+                    </div>
+                `;
+            } catch (error) {
+                tipsBox.innerHTML = '<p style="font-size: 12px; color: #b91c1c; font-weight: bold;">⚠️ Le moteur en ligne ne répond pas. Vérifiez le statut Render.</p>';
+            }
+        }
+
+        async function effectuerVersement() {
+            const idInput = document.getElementById('client-id-input');
+            const amountInput = document.getElementById('saving-amount');
+            const refInput = document.getElementById('transaction-ref');
+            const errorBox = document.getElementById('error-message');
+            
+            const clientId = idInput ? idInput.value.trim() : "";
+            const amount = parseInt(amountInput.value);
+            const ref = refInput.value.trim();
+
+            if (!clientId || clientId === "") {
+                errorBox.innerText = "⚠️ Identifiant requis : Veuillez saisir votre ID d'agriculteur.";
+                errorBox.style.display = "block";
+                return;
+            }
+
+            if (isNaN(amount) || amount < 20000) {
+                errorBox.innerText = "⚠️ Règle AgroCrédit : Le montant minimum d'épargne mensuel réglementaire est de 20 000 CFA.";
+                errorBox.style.display = "block";
+                return;
+            }
+
+            if (ref === "") {
+                errorBox.innerText = "⚠️ Référence requise : Entrez le code SMS Orange Money.";
+                errorBox.style.display = "block";
+                return;
+            }
+
+            try {
+                errorBox.style.display = "none";
+
+                const response = await fetch(serverUrl + "/api/save/orange", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        user_id: clientId,
+                        amount: amount, 
+                        transaction_ref: ref 
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.detail || "Erreur de validation du serveur.");
+                }
+
+                totalEpargne += amount;
+                
+                const nombreDeMois = Math.floor(totalEpargne / 20000);
+                const fraisFormation = nombreDeMois * 5000;
+                const epargneNette = totalEpargne - fraisFormation;
+                const droitCredit = epargneNette > 0 ? Math.floor((epargneNette / 0.15) * 0.85) : 0;
+
+                document.getElementById('display-savings').innerText = totalEpargne.toLocaleString('fr-FR') + " CFA";
+                document.getElementById('display-credit').innerText = droitCredit.toLocaleString('fr-FR') + " CFA";
+
+                amountInput.value = "";
+                refInput.value = "";
+
+                alert("✅ Succès ! Dépôt Orange Money enregistré sur SQLite de l'agence.");
+
+            } catch (error) {
+                errorBox.innerText = "❌ Échec : " + error.message;
+                errorBox.style.display = "block";
+            }
+        }
+
+        window.onload = chargerConseilAgro;
+    </script>
+</body>
+</html>
