@@ -83,8 +83,6 @@
     </script>
 </head>
 
-// frontend/admin.html - Partie 2
-
 <body>
     <div id="auth-container">
         <h2 style="color: #1e293b; font-size: 20px; margin-top: 0; margin-bottom: 5px;">🏦 Portail Banque Sécurisé</h2>
@@ -188,8 +186,6 @@
 </body>
 </html>
 
-// BLOC 3 : Chargement et filtrage du Portefeuille (frontend/admin.js - Partie 1)
-
 const serverUrl = ""; 
 
 // 1. Charger et filtrer dynamiquement les clients de cette agence précise
@@ -229,8 +225,6 @@ async function chargerClients() {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #b91c1c; font-weight: bold; padding: 20px 0;">⚠️ Erreur de connexion avec la base de données.</td></tr>';
     }
 }
-
-// BLOC 4 : Inscription sécurisée multi-agences (frontend/admin.js - Partie 2)
 
 // 2. Transmettre l'inscription en l'associant à l'agence courante
 async function enregistrerAgriculteur() {
@@ -286,8 +280,6 @@ async function enregistrerAgriculteur() {
         boutonSoumission.innerText = "Créer le compte d'accompagnement";
     }
 }
-
-// BLOC 5 : Évaluation et extraction Excel (frontend/admin.js - Partie 3)
 
 // 3. Générer le canevas d'évaluation technique
 async function analyserProjet(clientId) {
@@ -353,3 +345,6 @@ function exporterVersExcel() {
     document.body.removeChild(a);
 }
 window.onload = chargerClients;
+</div>
+</body>
+</html>
