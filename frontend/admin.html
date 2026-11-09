@@ -116,18 +116,18 @@ async function validerCodeBanque() {
         </nav>
 
         <main>
-            <!-- Formulaire d'inscription -->
+             <!-- 👤 FORMULAIRE D'INSCRIPTION RÉPARÉ ET ENTIÈREMENT ÉDITABLE -->
             <div class="card">
                 <h3 style="margin-top:0; color: #1e293b; font-size: 15px;">👤 Inscrire un Agriculteur</h3>
-                <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Ouvrez un dossier d'accompagnement pour un nouveau producteur.</p>
+                <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Ouvrez un dossier d'accompagnement pour un nouveau producteur éligible.</p>
                 
-                <label style="font-size: 12px; font-weight: bold;">Nom complet du producteur</label>
+                <label style="font-size: 12px; font-weight: bold; color: #475569;">Nom complet du producteur</label>
                 <input type="text" id="reg-name" placeholder="Ex: Isaac Tonfo">
                 
-                <label style="font-size: 12px; font-weight: bold;">Adresse Email / Contact</label>
+                <label style="font-size: 12px; font-weight: bold; color: #475569;">Adresse Email / Contact</label>
                 <input type="email" id="reg-email" placeholder="Ex: isaac@gmail.com">
                 
-                <label style="font-size: 12px; font-weight: bold;">Spéculation Agropastorale</label>
+                <label style="font-size: 12px; font-weight: bold; color: #475569;">Spéculation Agropastorale</label>
                 <select id="reg-filiere">
                     <option value="Poulet de chair">Poulet de chair (Élevage - 45 jours)</option>
                     <option value="Porc engraisseur">Porc engraisseur (Élevage)</option>
@@ -138,7 +138,7 @@ async function validerCodeBanque() {
                     <option value="Manioc">Transformation du Manioc</option>
                 </select>
                 
-                <label style="font-size: 12px; font-weight: bold;">Type de Garantie d'Octroi</label>
+                <label style="font-size: 12px; font-weight: bold; color: #475569;">Type de Garantie d'Octroi</label>
                 <select id="reg-garantie-type">
                     <option value="Caution Fonctionnaire">Caution Solidaire (Fonctionnaire)</option>
                     <option value="Nantissement Matériel">Nantissement Matériel</option>
@@ -146,12 +146,11 @@ async function validerCodeBanque() {
                     <option value="Garantie Morale">Garantie Morale / Attestation Coutumière</option>
                 </select>
                 
-                <label style="font-size: 12px; font-weight: bold;">Détails & Preuves de la Garantie</label>
-                <input type="text" id="reg-garantie-details" placeholder="Ex: Aval de M. Ndong">
+                <label style="font-size: 12px; font-weight: bold; color: #475569;">Détails & Preuves de la Garantie</label>
+                <input type="text" id="reg-garantie-details" placeholder="Ex: Aval de M. Ndong, Enseignant">
                 
-                <button onclick="enregistrerAgriculteur()" class="btn" style="margin-top: 10px;">Créer le compte d'accompagnement</button>
+                <button onclick="enregistrerAgriculteur()" class="btn" style="margin-top: 15px;">Créer le compte d'accompagnement</button>
             </div>
-
             <!-- Portefeuille Clients -->
             <div class="card">
                 <h3 style="margin-top: 0; color: #1e293b; font-size: 15px;">📋 Portefeuille Clients & Droits</h3>
