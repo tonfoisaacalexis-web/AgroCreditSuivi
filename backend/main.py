@@ -1,6 +1,5 @@
 import os
-import math
-import requests
+import sqlite3
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -8,17 +7,48 @@ from pydantic import BaseModel
 
 app = FastAPI(title="AgroCrédit Suivi")
 
-# Récupération sécurisée des clés d'accès Supabase PostgreSQL configurées sur Render
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://supabase.co")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+# Chemins d'accès pour les dossiers
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PARENT_DIR = os.path.dirname(CURRENT_DIR)
+FRONTEND_DIR = os.path.join(PARENT_DIR, "frontend")
+DB_PATH = os.path.join(CURRENT_DIR, "agrocredit.db")
 
-# En-têtes obligatoires pour interagir avec l'API REST sécurisée de Supabase
-HEADERS = {
-    "apikey": SUPABASE_KEY,
-    "Authorization": f"Bearer {SUPABASE_KEY}",
-    "Content-Type": "application/json",
-    "Prefer": "return=representation"
-}
+# 🐘 INITIALISATION DE LA BASE DE DONNÉES LOCALES SQLITE
+def initialiser_base_de_donnees():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    # Table des producteurs
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS clients (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            full_name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            filiere TEXT NOT NULL,
+            total_epargne INTEGER DEFAULT 0,
+            garantie_type TEXT NOT NULL,
+            garantie_details TEXT NOT NULL
+        )
+    """)
+    # Table des transactions Orange Money
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            amount INTEGER NOT NULL,
+            transaction_ref TEXT NOT NULL UNIQUE
+        )
+    """)
+    # Insertion automatique d'un compte de test persistant si la table est vide
+    cursor.execute("SELECT COUNT(*) FROM clients")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("""
+            INSERT INTO clients (full_name, email, filiere, total_epargne, garantie_type, garantie_details)
+            VALUES ('Jean Du Terrain', 'jean@terrain.cm', 'Poulet de chair', 40000, 'Caution Fonctionnaire', 'Aval de M. Ndong, Enseignant au Lycée (Matricule X-123)')
+        """)
+    conn.commit()
+    conn.close()
+
+initialiser_base_de_donnees()
 
 class ClientRegister(BaseModel):
     full_name: str
@@ -31,10 +61,6 @@ class DépôtOrangeMoney(BaseModel):
     user_id: str
     amount: float
     transaction_ref: str
-
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PARENT_DIR = os.path.dirname(CURRENT_DIR)
-FRONTEND_DIR = os.path.join(PARENT_DIR, "frontend")
 
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
@@ -55,69 +81,83 @@ def obtenir_conseil():
         "content": "Pendant la saison des pluies dans la Vallée-du-Ntem, préchauffez le poulailler 24h avant l'arrivée des poussins. Utilisez des lampes chauffantes."
     }
 
-# 👤 INSCRIPTION : Insertion directe dans la table PostgreSQL
+# 👤 INSCRIPTION : Insertion directe dans SQLite
 @app.post("/api/register")
 def inscrire_client(client: ClientRegister):
-    url = f"{SUPABASE_URL}/rest/v1/clients"
-    donnees = {
-        "full_name": client.full_name,
-        "email": client.email,
-        "filiere": client.filiere,
-        "total_epargne": 0,
-        "garantie_type": client.garantie_type,
-        "garantie_details": client.garantie_details
-    }
-    response = requests.post(url, headers=HEADERS, json=donnees)
-    if response.status_code != 201:
-        raise HTTPException(status_code=500, detail="Échec de l'enregistrement dans Supabase.")
-    return {"status": "success", "client": response.json()}
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO clients (full_name, email, filiere, total_epargne, garantie_type, garantie_details)
+            VALUES (?, ?, ?, 0, ?, ?)
+        """, (client.full_name, client.email, client.filiere, client.garantie_type, client.garantie_details))
+        conn.commit()
+        nouvel_id = cursor.lastrowid
+    except Exception:
+        conn.close()
+        raise HTTPException(status_code=500, detail="Erreur d'inscription en base SQLite.")
+    conn.close()
+    return {"status": "success", "id": nouvel_id}
 
-# 💰 VERSEMENT : Extraction de l'index sécurisée pour corriger le crash Failed
+# 💰 VERSEMENT : Validation et mise à jour de l'épargne stockée dans SQLite
 @app.post("/api/save/orange")
 def enregistrer_epargne(depot: DépôtOrangeMoney):
     if depot.amount < 20000:
         raise HTTPException(status_code=400, detail="L'épargne mensuelle doit être d'au moins 20 000 CFA.")
     
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    # Vérifier l'existence de l'agriculteur
+    cursor.execute("SELECT total_epargne FROM clients WHERE id = ?", (depot.user_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Agriculteur introuvable dans la base SQLite.")
+    
+    ancien_solde = row[0]
+    nouveau_solde = ancien_solde + int(depot.amount)
+    
     try:
-        user_id_num = int(depot.user_id)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="L'identifiant de l'agriculteur doit être un nombre valide.")
-
-    url_client = f"{SUPABASE_URL}/rest/v1/clients?id=eq.{user_id_num}"
-    res_client = requests.get(url_client, headers=HEADERS)
-    
-    res_json = res_client.json()
-    if res_client.status_code != 200 or not res_json or len(res_json) == 0:
-        raise HTTPException(status_code=404, detail="Agriculteur introuvable dans la base PostgreSQL.")
-    
-    # Extraction sécurisée du dictionnaire dans le tableau JSON
-    client_data = res_json[0]
-    nouveau_solde = int(client_data["total_epargne"]) + depot.amount
-
-    res_patch = requests.patch(url_client, headers=HEADERS, json={"total_epargne": nouveau_solde})
-    if res_patch.status_code != 200 and res_patch.status_code != 204:
-        raise HTTPException(status_code=500, detail="Échec de la mise à jour du solde d'épargne.")
-
-    url_tx = f"{SUPABASE_URL}/rest/v1/transactions"
-    requests.post(url_tx, headers=HEADERS, json={
-        "user_id": str(user_id_num),
-        "amount": depot.amount,
-        "transaction_ref": depot.transaction_ref.upper()
-    })
+        # Enregistrer la transaction et mettre à jour le solde
+        cursor.execute("INSERT INTO transactions (user_id, amount, transaction_ref) VALUES (?, ?, ?)",
+                       (depot.user_id, int(depot.amount), depot.transaction_ref.upper()))
+        cursor.execute("UPDATE clients SET total_epargne = ? WHERE id = ?", (nouveau_solde, depot.user_id))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Cette référence de transaction Orange Money a déjà été utilisée.")
+    except Exception:
+        conn.close()
+        raise HTTPException(status_code=500, detail="Erreur lors de la mise à jour du solde.")
+        
+    conn.close()
     return {"status": "success"}
 
-# 🏦 PORTFEUILLE : Récupération stabilisée et protégée contre le filtre de texte
+# 🏦 PORTFEUILLE : Lecture complète de la base SQLite
 @app.get("/api/admin/clients")
 def obtenir_tous_les_clients():
-    url = f"{SUPABASE_URL}/rest/v1/clients?select=*"
-    response = requests.get(url, headers=HEADERS)
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM clients")
+    rows = cursor.fetchall()
     
-    if response.status_code == 200:
-        return {"clients": response.json()}
-    
-    return {"clients": []}
+    liste_clients = []
+    for row in rows:
+        liste_clients.append({
+            "id": str(row["id"]),
+            "full_name": row["full_name"],
+            "email": row["email"],
+            "filiere": row["filiere"],
+            "total_epargne": row["total_epargne"],
+            "garantie_type": row["garantie_type"],
+            "garantie_details": row["garantie_details"]
+        })
+    conn.close()
+    return {"clients": liste_clients}
 
-# 📊 EVALUATION AUTOMATIQUE SÉCURISÉE
+# 📊 EVALUATION : Calcul de viabilité et d'échéances lissées
 @app.get("/api/admin/evaluation/{client_id}")
 def evaluer_projet_bancable(client_id: str):
     modeles_rentabilite = {
@@ -129,15 +169,18 @@ def evaluer_projet_bancable(client_id: str):
         "Cacao": {"cycle": "Entretien/Production", "invest": 1000000, "ca": 1800000, "charges": 450000},
         "Manioc": {"cycle": "Transformation", "invest": 1000000, "ca": 1500000, "charges": 350000}
     }
-    url = f"{SUPABASE_URL}/rest/v1/clients?id=eq.{client_id}"
-    res = requests.get(url, headers=HEADERS)
     
-    res_json = res.json()
-    if res.status_code != 200 or not res_json or len(res_json) == 0:
-        raise HTTPException(status_code=404, detail="Client introuvable.")
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
+    row = cursor.fetchone()
+    conn.close()
     
-    client_cible = res_json[0]
-    modele = modeles_rentabilite.get(client_cible["filiere"], {"cycle": "Indéfini", "invest": 1000000, "ca": 1400000, "charges": 350000})
+    if not row:
+        raise HTTPException(status_code=404, detail="Client introuvable pour l'évaluation.")
+        
+    modele = modeles_rentabilite.get(row["filiere"], {"cycle": "Indéfini", "invest": 1000000, "ca": 1400000, "charges": 350000})
     
     credit_sollicite = 850000
     duree_totale = 12
@@ -147,8 +190,8 @@ def evaluer_projet_bancable(client_id: str):
     mensualite_globale = int((credit_sollicite + total_interets) / mois_remboursement_effectif)
 
     return {
-        "client_name": client_cible["full_name"],
-        "speculation": client_cible["filiere"],
+        "client_name": row["full_name"],
+        "speculation": row["filiere"],
         "cycle_exploitation": modele["cycle"],
         "budget_total_projet": 1000000,
         "apport_epargne_nette": 150000,
@@ -156,8 +199,8 @@ def evaluer_projet_bancable(client_id: str):
         "chiffre_affaires_prev": modele["ca"],
         "charges_exploitation_prev": modele["charges"],
         "benefice_net_prev": modele["ca"] - modele["charges"] - 1000000,
-        "garantie_type": client_cible["garantie_type"],
-        "garantie_details": client_cible["garantie_details"],
+        "garantie_type": row["garantie_type"],
+        "garantie_details": row["garantie_details"],
         "statut_projet": "BANCABLE & SÉCURISÉ",
         "duree_mois": duree_totale,
         "differe_mois": mois_differe,
