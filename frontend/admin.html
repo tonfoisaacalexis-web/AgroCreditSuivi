@@ -192,14 +192,24 @@
             }
             try {
                 boutonSoumission.disabled = true;
-                const response = await fetch(serverUrl + "/api/register", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        full_name: nameInput.value.trim(), email: emailInput.value.trim(), filiere: filiereInput.value, garantie_type: garantieTypeInput.value, garantie_details: garantieDetailsInput.value.trim(),
-                        banque_nom: localStorage.getItem("cfg_banque") || "La Régionale", agence_nom: localStorage.getItem("cfg_agence") || "Ambam", localite: localStorage.getItem("cfg_localite") || "Ambam", arrondissement: localStorage.getItem("cfg_arrondissement") || "Ambam", departement: localStorage.getItem("cfg_departement") || "Vallée-du-Ntem", region: localStorage.getItem("cfg_region") || "Sud"
-                    })
-                });
+                 // 🔥 MODIFIEZ EXCLUSIVEMENT LA CLÉ EN AJOUTANT LE "E" :
+        const response = await fetch(serverUrl + "/api/register", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                full_name: nameInput.value.trim(), 
+                email: emailInput.value.trim(), 
+                filiere: filiereInput.value, 
+                garantie_type: garantieTypeInput.value, 
+                garantie_details: garantieDetailsInput.value.trim(),
+                banque_nom: localStorage.getItem("cfg_banque") || "La Régionale", 
+                agence_nom: localStorage.getItem("cfg_agence") || "Ambam", 
+                localite: localStorage.getItem("cfg_localite") || "Ambam", 
+                arrondissement: localStorage.getItem("cfg_arrondissement") || "Ambam", 
+                departement: localStorage.getItem("cfg_departement") || "Vallée-du-Ntem", // 👈 CORRIGÉ ICI
+                region: localStorage.getItem("cfg_region") || "Sud"
+            })
+        });
                 if (response.ok) {
                     alert("✅ Agriculteur inscrit !"); nameInput.value = ""; emailInput.value = ""; garantieDetailsInput.value = ""; chargerClients();
                 } else { alert("❌ Échec de l'inscription."); }

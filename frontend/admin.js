@@ -65,7 +65,7 @@ async function enregistrerAgriculteur() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 full_name: nameInput.value.trim(), email: emailInput.value.trim(), filiere: filiereInput.value, garantie_type: garantieTypeInput.value, garantie_details: garantieDetailsInput.value.trim(),
-                banque_nom: localStorage.getItem("cfg_banque") || "La Régionale", agence_nom: localStorage.getItem("cfg_agence") || "Ambam", localite: localStorage.getItem("cfg_localite") || "Ambam", arrondissement: localStorage.getItem("cfg_arrondissement") || "Ambam", department: localStorage.getItem("cfg_departement") || "Vallée-du-Ntem", region: localStorage.getItem("cfg_region") || "Sud"
+                banque_nom: localStorage.getItem("cfg_banque") || "La Régionale", agence_nom: localStorage.getItem("cfg_agence") || "Ambam", localite: localStorage.getItem("cfg_localite") || "Ambam", arrondissement: localStorage.getItem("cfg_arrondissement") || "Ambam", departement: localStorage.getItem("cfg_departement") || "Vallée-du-Ntem", region: localStorage.getItem("cfg_region") || "Sud"
             })
         });
         alert("✅ Agriculteur inscrit !"); nameInput.value = ""; emailInput.value = ""; garantieDetailsInput.value = ""; chargerClients();
