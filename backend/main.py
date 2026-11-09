@@ -93,9 +93,9 @@ def enregistrer_epargne(depot: DépôtOrangeMoney):
     nouveau_solde = int(client_data["total_epargne"]) + depot.amount
 
     res_patch = requests.patch(url_client, headers=HEADERS, json={"total_epargne": nouveau_solde})
+    # 🔥 REMPLACEZ LA LIGNE 96-97 PAR CELLE-CI (Vérification des codes de succès 200 et 204) :
     if res_patch.status_code not in:
         raise HTTPException(status_code=500, detail="Échec de la mise à jour du solde d'épargne.")
-
     url_tx = f"{SUPABASE_URL}/rest/v1/transactions"
     requests.post(url_tx, headers=HEADERS, json={
         "user_id": str(user_id_num),
