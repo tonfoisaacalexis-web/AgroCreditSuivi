@@ -140,3 +140,34 @@ async function analyserProjet(clientId) {
 }
 
 window.onload = chargerClients;
+
+// 📊 FONCTION COMPLÈTE D'EXPORTATION EXCEL (.XLSX) RE-INTÉGRÉE
+function exporterVersExcel() {
+    const table = document.querySelector("table");
+    if (!table || (table.rows.length <= 2 && table.innerHTML.includes("Chargement"))) {
+        alert("⚠️ Action impossible : Aucun compte d'agriculteur n'est affiché pour le moment.");
+        return;
+    }
+
+    // Capture de la structure HTML du portefeuille clients
+    let html = table.outerHTML;
+    
+    // Remplacement propre des boutons du tableau par un texte lisible sous Excel
+    html = html.replace(/<button[^>]*>([\s\S]*?)<\/button>/gi, "Dossier Actif");
+
+    const blob = new Blob([`
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://w3.org">
+        <head><meta charset="utf-8"></head>
+        <body>${html}</body>
+        </html>
+    `], { type: "application/vnd.ms-excel" });
+
+    // Déclenchement automatique du téléchargement du fichier .xls
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Portefeuille_AgroCredit_Ambam_" + new Date().toLocaleDateString('fr-FR') + ".xls";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
