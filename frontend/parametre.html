@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration de la Souscription - AgroCrédit Suivi</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f1f5f9; color: #0f172a; margin: 0; padding: 40px; }
+        .config-card { max-w: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        input { width: 100%; padding: 10px; margin: 5px 0 15px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 13px; }
+        .btn-save { width: 100%; background-color: #15803d; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .btn-save:hover { background-color: #166534; }
+        .btn-back { display: block; text-align: center; margin-top: 15px; color: #64748b; font-size: 13px; text-decoration: none; }
+    </style>
+    <script>
+        function chargerConfig() {
+            document.getElementById("cfg-banque").value = localStorage.getItem("cfg_banque") || "La Régionale";
+            document.getElementById("cfg-agence").value = localStorage.getItem("cfg_agence") || "Ambam";
+            document.getElementById("cfg-localite").value = localStorage.getItem("cfg_localite") || "Ambam";
+            document.getElementById("cfg-arrond").value = localStorage.getItem("cfg_arrondissement") || "Ambam";
+            document.getElementById("cfg-dep").value = localStorage.getItem("cfg_departement") || "Vallée-du-Ntem";
+            document.getElementById("cfg-reg").value = localStorage.getItem("cfg_region") || "Sud";
+        }
+        function enregistrerConfig() {
+            localStorage.setItem("cfg_banque", document.getElementById("cfg-banque").value.trim());
+            localStorage.setItem("cfg_agence", document.getElementById("cfg-agence").value.trim());
+            localStorage.setItem("cfg_localite", document.getElementById("cfg-localite").value.trim());
+            localStorage.setItem("cfg_arrondissement", document.getElementById("cfg-arrond").value.trim());
+            localStorage.setItem("cfg_departement", document.getElementById("cfg-dep").value.trim());
+            localStorage.setItem("cfg_region", document.getElementById("cfg-reg").value.trim());
+            alert("⚙️ Configuration sauvegardée avec succès !");
+            window.location.href = "/admin";
+        }
+        window.onload = chargerConfig;
+    </script>
+</head>
+<body>
+
+    <div class="config-card">
+        <h2 style="margin-top:0; color: #1e293b; font-size: 18px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">⚙️ Configuration Souscription Banque</h2>
+        <p style="color:#64748b; font-size:12px; margin-bottom:20px;">Renseignez les paramètres géographiques de votre établissement.</p>
+        
+        <label style="font-size:12px; font-weight:bold; color:#475569;">Nom de la Banque / EMF</label>
+        <input type="text" id="cfg-banque">
+
+        <label style="font-size:12px; font-weight:bold; color:#475569;">Nom de l'Agence</label>
+        <input type="text" id="cfg-agence">
+
+        <label style="font-size:12px; font-weight:bold; color:#475569;">Ville / Localité</label>
+        <input type="text" id="cfg-localite">
+
+        <label style="font-size:12px; font-weight:bold; color:#475569;">Arrondissement</label>
+        <input type="text" id="cfg-arrond">
+
+        <label style="font-size:12px; font-weight:bold; color:#475569;">Département</label>
+        <input type="text" id="cfg-dep">
+
+        <label style="font-size:12px; font-weight:bold; color:#475569;">Région</label>
+        <input type="text" id="cfg-reg">
+
+        <button onclick="enregistrerConfig()" class="btn-save">💾 Enregistrer et Appliquer</button>
+        <a href="/admin" class="btn-back">⬅️ Retour au tableau de bord</a>
+    </div>
+
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroCrédit Suivi - Portail Banque Universel</title>
+    <title>AgroCrédit Suivi - Portail Banque</title>
     <style>
         body { font-family: sans-serif; background-color: #f1f5f9; color: #0f172a; margin: 0; padding: 0; }
         nav { background-color: #1e293b; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
@@ -21,73 +21,21 @@
         .badge-frais { background-color: #fee2e2; color: #991b1b; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
         #auth-container { max-width: 400px; margin: 100px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; text-align: center; }
         #protected-content { display: none; }
-        #config-panel { background: #fafafa; border: 1px solid #cbd5e1; display: none; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
         @media print {
-            body { background-color: white; }
-            nav, .btn-refresh, main > div:nth-child(1), main > div:nth-child(2), button, #config-panel { display: none !important; }
+            nav, .btn-refresh, main > div:nth-child(1), main > div:nth-child(2), button { display: none !important; }
             main { display: block; margin: 0; padding: 0; }
             .card { border: none; box-shadow: none; padding: 0; }
         }
     </style>
     <script src="/static/admin.js" defer></script>
-    <script>
-        function validerCodeBanque() {
-            const inputCode = document.getElementById("agency-password-field").value;
-            if (inputCode === "Ambam2026") {
-                document.getElementById("auth-container").style.display = "none";
-                document.getElementById("protected-content").style.display = "block";
-                initialiserVariablesAgence();
-                if (typeof chargerClients === "function") chargerClients();
-            } else {
-                alert("❌ Code incorrect.");
-                document.getElementById("agency-password-field").value = "";
-            }
-        }
-        function initialiserVariablesAgence() {
-            if(!localStorage.getItem("cfg_banque")) {
-                localStorage.setItem("cfg_banque", "La Régionale");
-                localStorage.setItem("cfg_agence", "Ambam");
-                localStorage.setItem("cfg_localite", "Ambam");
-                localStorage.setItem("cfg_arrondissement", "Ambam");
-                localStorage.setItem("cfg_departement", "Vallée-du-Ntem");
-                localStorage.setItem("cfg_region", "Sud");
-            }
-            appliquerAffichageTextes();
-        }
-        function appliquerAffichageTextes() {
-            document.getElementById("title-banque").innerText = localStorage.getItem("cfg_banque");
-            document.getElementById("subtitle-agence").innerText = "Agence de " + localStorage.getItem("cfg_agence") + " — Département de la " + localStorage.getItem("cfg_departement") + " (" + localStorage.getItem("cfg_region") + ")";
-        }
-        function basculerAffichageConfig() {
-            const pnl = document.getElementById("config-panel");
-            pnl.style.display = pnl.style.display === "block" ? "none" : "block";
-            document.getElementById("cfg-input-banque").value = localStorage.getItem("cfg_banque");
-            document.getElementById("cfg-input-agence").value = localStorage.getItem("cfg_agence");
-            document.getElementById("cfg-input-localite").value = localStorage.getItem("cfg_localite");
-            document.getElementById("cfg-input-arrond").value = localStorage.getItem("cfg_arrondissement");
-            document.getElementById("cfg-input-dep").value = localStorage.getItem("cfg_departement");
-            document.getElementById("cfg-input-reg").value = localStorage.getItem("cfg_region");
-        }
-        function enregistrerConfiguration() {
-            localStorage.setItem("cfg_banque", document.getElementById("cfg-input-banque").value.trim());
-            localStorage.setItem("cfg_agence", document.getElementById("cfg-input-agence").value.trim());
-            localStorage.setItem("cfg_localite", document.getElementById("cfg-input-localite").value.trim());
-            localStorage.setItem("cfg_arrondissement", document.getElementById("cfg-input-arrond").value.trim());
-            localStorage.setItem("cfg_departement", document.getElementById("cfg-input-dep").value.trim());
-            localStorage.setItem("cfg_region", document.getElementById("cfg-input-reg").value.trim());
-            appliquerAffichageTextes();
-            document.getElementById("config-panel").style.display = "none";
-            alert("⚙️ Configuration enregistrée !");
-            if (typeof chargerClients === "function") chargerClients();
-        }
-    </script>
 </head>
 <body>
+
     <div id="auth-container">
         <h2 style="color: #1e293b; font-size: 20px; margin-top: 0; margin-bottom: 5px;">🏦 Portail Banque Sécurisé</h2>
-        <p style="color: #64748b; font-size: 12px; margin-bottom: 25px;">AgroCrédit Suivi — Édition Logicielle Universelle</p>
+        <p style="color: #64748b; font-size: 12px; margin-bottom: 25px;">AgroCrédit Suivi — Édition Universelle</p>
         <input type="password" id="agency-password-field" placeholder="Entrez le mot de passe" style="margin-bottom: 20px;" onkeydown="if(event.key === 'Enter') validerCodeBanque()">
-        <button onclick="validerCodeBanque()" class="btn" style="background-color: #1e293b;">Se connecter au Portefeuille</button>
+        <button onclick="validerCodeBanque()" class="btn" style="background-color: #1e293b;">Se connecter</button>
     </div>
 
     <div id="protected-content">
@@ -97,7 +45,7 @@
                 <small style="opacity: 0.8;" id="subtitle-agence">...</small>
             </div>
             <div style="display: flex; gap: 10px;">
-                <button onclick="basculerAffichageConfig()" style="background-color: #64748b; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">⚙️ Paramètres Agence</button>
+                <a href="/static/parametre.html" style="background-color: #64748b; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; text-decoration: none; display: flex; align-items: center;">⚙️ Paramètres Agence</a>
                 <button onclick="exporterVersExcel()" style="background-color: #10b981; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">📊 Exporter Excel</button>
                 <button onclick="window.print()" style="background-color: #475569; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">🖨️ Imprimer PDF</button>
                 <button onclick="chargerClients()" class="btn-refresh">🔄 Actualiser</button>
@@ -105,59 +53,42 @@
         </nav>
 
         <main>
-            <div>
-                <div id="config-panel">
-                    <h4 style="margin:0 0 10px 0; color:#1e293b; font-size:13px;">⚙️ Configuration de l'Agence</h4>
-                    <label style="font-size:11px; font-weight:bold;">Nom de la Banque / EMF</label>
-                    <input type="text" id="cfg-input-banque">
-                    <label style="font-size:11px; font-weight:bold;">Nom de l'Agence</label>
-                    <input type="text" id="cfg-input-agence">
-                    <label style="font-size:11px; font-weight:bold;">Ville / Localité</label>
-                    <input type="text" id="cfg-input-localite">
-                    <label style="font-size:11px; font-weight:bold;">Arrondissement</label>
-                    <input type="text" id="cfg-input-arrond">
-                    <label style="font-size:11px; font-weight:bold;">Département</label>
-                    <input type="text" id="cfg-input-dep">
-                    <label style="font-size:11px; font-weight:bold;">Région</label>
-                    <input type="text" id="cfg-input-reg">
-                    <button onclick="enregistrerConfiguration()" class="btn" style="background:#15803d; padding:6px; font-size:12px;">💾 Appliquer la Configuration</button>
-                </div>
-
-                <div class="card">
-                    <h3 style="margin-top:0; color: #1e293b; font-size: 15px;">👤 Inscrire un Agriculteur</h3>
-                    <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Ouvrez un dossier d'accompagnement.</p>
-                    
-                    <label style="font-size: 12px; font-weight: bold;">Nom complet du producteur</label>
-                    <input type="text" id="reg-name" placeholder="Ex: Isaac Tonfo">
-                    
-                    <label style="font-size: 12px; font-weight: bold;">Adresse Email / Contact</label>
-                    <input type="email" id="reg-email" placeholder="Ex: isaac@gmail.com">
-                    
-                    <label style="font-size: 12px; font-weight: bold;">Spéculation Agropastorale</label>
-                    <select id="reg-filiere">
-                        <option value="Poulet de chair">Poulet de chair (Élevage - 45 jours)</option>
-                        <option value="Porc engraisseur">Porc engraisseur (Élevage)</option>
-                        <option value="Pisciculture">Pisciculture (Poisson)</option>
-                        <option value="Maïs">Culture de Maïs</option>
-                        <option value="Bananier plantain">Bananier plantain</option>
-                        <option value="Cacao">Cacaoculteur</option>
-                        <option value="Manioc">Transformation du Manioc</option>
-                    </select>
-                    
-                    <label style="font-size: 12px; font-weight: bold;">Type de Garantie d'Octroi</label>
-                    <select id="reg-garantie-type">
-                        <option value="Caution Fonctionnaire">Caution Solidaire (Fonctionnaire)</option>
-                        <option value="Nantissement Matériel">Nantissement Matériel</option>
-                        <option value="Garantie Réelle">Garantie Réelle (Titre Foncier)</option>
-                    </select>
-                    
-                    <label style="font-size: 12px; font-weight: bold;">Détails & Preuves de la Garantie</label>
-                    <input type="text" id="reg-garantie-details" placeholder="Ex: Aval de M. Ndong">
-                    
-                    <button onclick="enregistrerAgriculteur()" class="btn">Créer le compte d'accompagnement</button>
-                </div>
+            <!-- Formulaire d'inscription -->
+            <div class="card">
+                <h3 style="margin-top:0; color: #1e293b; font-size: 15px;">👤 Inscrire un Agriculteur</h3>
+                <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Ouvrez un dossier d'accompagnement.</p>
+                
+                <label style="font-size: 12px; font-weight: bold;">Nom complet du producteur</label>
+                <input type="text" id="reg-name" placeholder="Ex: Isaac Tonfo">
+                
+                <label style="font-size: 12px; font-weight: bold;">Adresse Email / Contact</label>
+                <input type="email" id="reg-email" placeholder="Ex: isaac@gmail.com">
+                
+                <label style="font-size: 12px; font-weight: bold;">Spéculation Agropastorale</label>
+                <select id="reg-filiere">
+                    <option value="Poulet de chair">Poulet de chair (Élevage)</option>
+                    <option value="Porc engraisseur">Porc engraisseur (Élevage)</option>
+                    <option value="Pisciculture">Pisciculture (Poisson)</option>
+                    <option value="Maïs">Culture de Maïs</option>
+                    <option value="Bananier plantain">Bananier plantain</option>
+                    <option value="Cacao">Cacaoculteur</option>
+                    <option value="Manioc">Transformation du Manioc</option>
+                </select>
+                
+                <label style="font-size: 12px; font-weight: bold;">Type de Garantie d'Octroi</label>
+                <select id="reg-garantie-type">
+                    <option value="Caution Fonctionnaire">Caution Solidaire (Fonctionnaire)</option>
+                    <option value="Nantissement Matériel">Nantissement Matériel</option>
+                    <option value="Garantie Réelle">Garantie Réelle (Titre Foncier)</option>
+                </select>
+                
+                <label style="font-size: 12px; font-weight: bold;">Détails & Preuves de la Garantie</label>
+                <input type="text" id="reg-garantie-details" placeholder="Ex: Aval de M. Ndong">
+                
+                <button onclick="enregistrerAgriculteur()" class="btn">Créer le compte</button>
             </div>
 
+            <!-- Tableau -->
             <div class="card">
                 <h3 style="margin-top: 0; color: #1e293b; font-size: 15px;">📋 Portefeuille Clients & Droits</h3>
                 <table>
@@ -174,12 +105,13 @@
                     </thead>
                     <tbody id="table-clients-body">
                         <tr>
-                            <td colspan="7" style="text-align: center; color: #94a3b8; font-style: italic;">Chargement des données...</td>
+                            <td colspan="7" style="text-align: center; color: #94a3b8; font-style: italic;">Chargement...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
+            <!-- Fiche d'évaluation -->
             <div class="card" style="background-color: #fafafa; border: 1px dashed #cbd5e1;">
                 <h3 style="margin-top:0; color: #1e293b; font-size: 15px;">📋 Canevas Projet Bancable</h3>
                 <div id="evaluation-content" style="font-size: 12px; margin-top: 15px; color: #475569; font-style: italic;">
