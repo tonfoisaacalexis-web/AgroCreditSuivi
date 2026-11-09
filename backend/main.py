@@ -93,20 +93,36 @@ def enregistrer_epargne(depot: DépôtOrangeMoney):
 def obtenir_tous_les_clients():
     return {"clients": base_donnees_clients}
 
-# 🔥 REMPLACEZ TOUTE LA LOGIQUE DE CALCUL DE LA ROUTE /api/admin/evaluation/{client_id} PAR CECI :
+@app.get("/api/admin/evaluation/{client_id}")
+def evaluer_projet_bancable(client_id: str):
+    modeles_rentabilite = {
+        "Poulet de chair": {"cycle": "45 jours", "invest": 1000000, "ca": 1400000, "charges": 350000},
+        "Porc engraisseur": {"cycle": "6 mois", "invest": 1000000, "ca": 1500000, "charges": 450000},
+        "Pisciculture": {"cycle": "6 mois", "invest": 1000000, "ca": 1600000, "charges": 500000},
+        "Maïs": {"cycle": "4 mois", "invest": 1000000, "ca": 1350000, "charges": 300000},
+        "Bananier plantain": {"cycle": "En production", "invest": 1000000, "ca": 1700000, "charges": 400000},
+        "Cacao": {"cycle": "Entretien/Production", "invest": 1000000, "ca": 1800000, "charges": 450000},
+        "Manioc": {"cycle": "Transformation", "invest": 1000000, "ca": 1500000, "charges": 350000}
+    }
+
+    client_cible = next((c for c in base_donnees_clients if c["id"] == client_id), None)
+    if not client_cible:
+        raise HTTPException(status_code=404, detail="Client introuvable.")
+
     speculation = client_cible["filiere"]
     modele = modeles_rentabilite.get(speculation, {"cycle": "Indéfini", "invest": 1000000, "ca": 1400000, "charges": 350000})
 
-    # Nouvelle logique universelle sur 12 mois avec 2 mois de différé (Remboursement sur 10 mois réels)
+    # Logique lissée : Crédit de 850 000 CFA sur 12 mois au total
     credit_sollicite = 850000
-    taux_interet_mensuel = 0.01  # 1% par mois
     duree_totale = 12
     mois_differe = 2
-    duree_remboursement_eff = duree_totale - mois_differe  # 10 mois de traites
+    mois_remboursement_effectif = duree_totale - mois_differe # 10 mois de traites
 
-    # Calcul de la mensualité constante sur la période de remboursement réelle
-    mensualite_globale = math.floor((credit_sollicite * taux_interet_mensuel) / (1 - (1 + taux_interet_mensuel) ** (-duree_remboursement_eff)))
-    total_interets = (mensualite_globale * duree_remboursement_eff) - credit_sollicite
+    # Intérêt lissé simple à 1% par mois sur la durée totale du crédit
+    total_interets = int(credit_sollicite * 0.01 * duree_totale) # 102 000 CFA d'intérêts total
+    
+    # Mensualité constante lissée : (Capital + Intérêts) / 10 mois effectifs
+    mensualite_globale = int((credit_sollicite + total_interets) / mois_remboursement_effectif) # 95 200 CFA / mois
 
     return {
         "client_name": client_cible["full_name"],
@@ -121,7 +137,6 @@ def obtenir_tous_les_clients():
         "garantie_type": client_cible["garantie_type"],
         "garantie_details": client_cible["garantie_details"],
         "statut_projet": "BANCABLE & SÉCURISÉ",
-        # Nouvelles variables pour l'affichage
         "duree_mois": duree_totale,
         "differe_mois": mois_differe,
         "mensualite": mensualite_globale,
