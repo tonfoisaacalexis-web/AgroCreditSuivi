@@ -72,7 +72,7 @@ def inscrire_client(client: ClientRegister):
         raise HTTPException(status_code=500, detail="Échec de l'enregistrement dans Supabase.")
     return {"status": "success", "client": response.json()}
 
-# 💰 VERSEMENT : Extraction de l'index [0] sécurisée pour corriger le crash Failed
+# 💰 VERSEMENT : Extraction de l'index sécurisée pour corriger le crash Failed
 @app.post("/api/save/orange")
 def enregistrer_epargne(depot: DépôtOrangeMoney):
     if depot.amount < 20000:
@@ -106,7 +106,7 @@ def enregistrer_epargne(depot: DépôtOrangeMoney):
     })
     return {"status": "success"}
 
-# 🏦 PORTFEUILLE : Liste globale
+# 🏦 PORTFEUILLE : Liste globale (Ligne 107 corrigée ici)
 @app.get("/api/admin/clients")
 def obtenir_tous_les_clients():
     url = f"{SUPABASE_URL}/rest/v1/clients?select=*"
