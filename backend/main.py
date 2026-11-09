@@ -106,12 +106,16 @@ def enregistrer_epargne(depot: DépôtOrangeMoney):
     })
     return {"status": "success"}
 
-# 🏦 PORTFEUILLE : Liste globale (Ligne 107 corrigée ici)
+# 🏦 PORTFEUILLE : Récupération stabilisée et protégée contre le filtre de texte
 @app.get("/api/admin/clients")
 def obtenir_tous_les_clients():
     url = f"{SUPABASE_URL}/rest/v1/clients?select=*"
     response = requests.get(url, headers=HEADERS)
-    return {"clients": response.json() if response.status_code == 200 else []}
+    
+    if response.status_code == 200:
+        return {"clients": response.json()}
+    
+    return {"clients": []}
 
 # 📊 EVALUATION AUTOMATIQUE SÉCURISÉE
 @app.get("/api/admin/evaluation/{client_id}")
