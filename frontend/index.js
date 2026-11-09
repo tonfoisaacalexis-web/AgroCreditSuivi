@@ -19,14 +19,22 @@ async function chargerConseilAgro() {
     }
 }
 
-// 2. Envoyer la transaction Orange Money validée au serveur en ligne
+// 🔥 REMPLACEZ LA FONCTION effectuerVersement DANS index.js PAR CETTE VERSION DYNAMIQUE :
 async function effectuerVersement() {
     const amountInput = document.getElementById('saving-amount');
     const refInput = document.getElementById('transaction-ref');
     const errorBox = document.getElementById('error-message');
     
+    // Ajoutez temporairement une invite de texte pour demander l'ID PostgreSQL ou créez un champ input id="client-id" dans index.html
+    const prodUserId = prompt("Veuillez saisir votre Identifiant Unique d'Agriculteur (Ex: 1, 2, 3...) :"); 
+    
     const amount = parseInt(amountInput.value);
     const ref = refInput.value.trim();
+
+    if (!prodUserId) {
+        alert("⚠️ Action requise : Vous devez renseigner votre ID pour valider le versement.");
+        return;
+    }
 
     if (isNaN(amount) || amount < 20000) {
         errorBox.innerText = "⚠️ Règle AgroCrédit : Le montant minimum d'épargne mensuel réglementaire est de 20 000 CFA.";
@@ -42,13 +50,12 @@ async function effectuerVersement() {
 
     try {
         errorBox.style.display = "none";
-        const testUserId = "1"; 
 
         const response = await fetch(serverUrl + "/api/save/orange", {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                user_id: testUserId,
+                user_id: prodUserId.trim(), // Transmission de l'ID PostgreSQL dynamique lue en base
                 amount: amount, 
                 transaction_ref: ref 
             })
@@ -60,20 +67,9 @@ async function effectuerVersement() {
             throw new Error(result.detail || "Erreur de validation du serveur.");
         }
 
-        totalEpargne += amount;
-        
-        const nombreDeMois = Math.floor(totalEpargne / 20000);
-        const fraisFormation = nombreDeMois * 5000;
-        const epargneNette = totalEpargne - fraisFormation;
-        const droitCredit = epargneNette > 0 ? Math.floor((epargneNette / 0.15) * 0.85) : 0;
-
-        document.getElementById('display-savings').innerText = totalEpargne.toLocaleString('fr-FR') + " CFA";
-        document.getElementById('display-credit').innerText = droitCredit.toLocaleString('fr-FR') + " CFA";
-
+        alert("✅ Succès ! Dépôt Orange Money validé et synchronisé à vie dans la base PostgreSQL Supabase.");
         amountInput.value = "";
         refInput.value = "";
-
-        alert("✅ Succès ! Dépôt Orange Money validé et enregistré sur le serveur Render.");
 
     } catch (error) {
         errorBox.innerText = "❌ Échec : " + error.message;

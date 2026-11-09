@@ -124,6 +124,10 @@ async function analyserProjet(clientId) {
         `;
     } catch (error) {
         contentBox.innerHTML = "<p style='color:#b91c1c;'>⚠️ Échec du calcul de l'échéancier prévisionnel.</p>";
+        // 🔥 DANS admin.html, AJOUTEZ CE BOUTON JUSTE EN DESSOUS DU BLOC EVALUATION VERT :
+<button onclick="window.print()" style="margin-top: 15px; width: 100%; background-color: #1e293b; color: white; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+    🖨️ Imprimer l'Attestation Officielle (PDF)
+</button>
     }
 }
 
