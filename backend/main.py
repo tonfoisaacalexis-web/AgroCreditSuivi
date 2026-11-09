@@ -110,7 +110,7 @@ def obtenir_tous_les_clients():
     response = requests.get(url, headers=HEADERS)
     return {"clients": response.json() if response.status_code == 200 else []}
 
-# 📊 EVALUATION AUTOMATIQUE (Inchangée et 100% stable)
+# 📊 EVALUATION AUTOMATIQUE RESTAURÉE ET STABILISÉE POUR POSTGRESQL
 @app.get("/api/admin/evaluation/{client_id}")
 def evaluer_projet_bancable(client_id: str):
     modeles_rentabilite = {
@@ -126,7 +126,11 @@ def evaluer_projet_bancable(client_id: str):
     res = requests.get(url, headers=HEADERS)
     if res.status_code != 200 or not res.json():
         raise HTTPException(status_code=404, detail="Client introuvable.")
-    client_cible = res.json()[0]
+    
+    # Extraction sécurisée de la ligne de données
+    donnees_json = res.json()
+    client_cible = donnees_json[0] if isinstance(donnees_json, list) and len(donnees_json) > 0 else donnees_json
+    
     modele = modeles_rentabilite.get(client_cible["filiere"], {"cycle": "Indéfini", "invest": 1000000, "ca": 1400000, "charges": 350000})
     
     credit_sollicite = 850000
