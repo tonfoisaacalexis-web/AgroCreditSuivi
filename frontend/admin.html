@@ -21,7 +21,8 @@
         .badge { background-color: #dcfce7; color: #15803d; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
         .badge-frais { background-color: #fee2e2; color: #991b1b; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
         
-        #auth-lock-screen { text-align: center; margin-top: 150px; }
+        /* Style de la boîte de connexion centrale */
+        #auth-container { max-width: 400px; margin: 100px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; text-align: center; }
         #protected-content { display: none; }
 
         @media print {
@@ -33,39 +34,42 @@
     </style>
     <script src="/static/admin.js" defer></script>
     <script>
-        function verifierAcces() {
+        function validerCodeBanque() {
+            const inputCode = document.getElementById("agency-password-field").value;
             const codeCorrect = "Ambam2026";
-            const tentative = prompt("🏦 ACCÈS SÉCURISÉ AGROCRÉDIT SUIVI\nVeuillez entrer le mot de passe de l'agence pour débloquer le portefeuille :");
+            const msgErreur = document.getElementById("auth-error-msg");
 
-            if (tentative === codeCorrect) {
-                // Masquer le message de verrouillage et afficher l'interface
-                document.getElementById("auth-lock-screen").style.display = "none";
+            if (inputCode === codeCorrect) {
+                // Déverrouillage visuel immédiat
+                document.getElementById("auth-container").style.display = "none";
                 document.getElementById("protected-content").style.display = "block";
                 
-                // Charger les clients depuis SQLite
-                setTimeout(() => {
-                    if (typeof chargerClients === "function") chargerClients();
-                }, 200);
+                // Forcer le chargement de la base SQLite
+                if (typeof chargerClients === "function") chargerClients();
             } else {
-                alert("❌ Mot de passe incorrect. Accès strictement refusé.");
-                document.getElementById("auth-lock-screen").innerHTML = `
-                    <h1 style="color: #b91c1c; font-size: 28px; margin-bottom: 10px;">⚠️ Portail Banque Verrouillé</h1>
-                    <p style="color: #475569; font-size: 14px;">Identifiants invalides. Cet espace est réservé au personnel de l'agence d'Ambam.</p>
-                    <button onclick="window.location.reload()" style="background-color: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 20px;">Nouvelle tentative</button>
-                `;
+                msgErreur.innerText = "❌ Code de sécurité incorrect. Accès refusé.";
+                msgErreur.style.display = "block";
+                document.getElementById("agency-password-field").value = "";
             }
         }
-        window.onload = verifierAcces;
     </script>
 </head>
 <body>
 
-    <!-- Écran d'attente initial pendant la vérification -->
-    <div id="auth-lock-screen">
-        <h2 style="color: #475569; font-weight: normal; font-style: italic;">Vérification des droits d'accès de l'agence en cours...</h2>
+    <!-- 🔒 FORMULAIRE DE CONNEXION INTÉGRÉ (Évite les blocages de fenêtres pop-up Chrome) -->
+    <div id="auth-container">
+        <h2 style="color: #1e293b; font-size: 20px; margin-top: 0; margin-bottom: 5px;">🏦 Portail Banque Sécurisé</h2>
+        <p style="color: #64748b; font-size: 12px; margin-bottom: 25px;">AgroCrédit Suivi — Agence de la Vallée-du-Ntem</p>
+        
+        <div id="auth-error-msg" style="color: #b91c1c; font-size: 12px; font-weight: bold; background: #fef2f2; padding: 8px; border-radius: 6px; margin-bottom: 15px; display: none;"></div>
+
+        <label style="display: block; text-align: left; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 5px;">Code secret de l'agence :</label>
+        <input type="password" id="agency-password-field" placeholder="Entrez le mot de passe" style="margin-bottom: 20px;" onkeydown="if(event.key === 'Enter') validerCodeBanque()">
+
+        <button onclick="validerCodeBanque()" class="btn" style="background-color: #1e293b;">Se connecter au Portefeuille</button>
     </div>
 
-    <!-- Interface protégée globale -->
+    <!-- 🌐 INTERFACE BANQUE PROTÉGÉE -->
     <div id="protected-content">
         <nav>
             <div>
