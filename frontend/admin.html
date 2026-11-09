@@ -54,39 +54,40 @@
 
         <main>
             <!-- Formulaire d'inscription -->
-            <div class="card">
-                <h3 style="margin-top:0; color: #1e293b; font-size: 15px;">👤 Inscrire un Agriculteur</h3>
-                <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Ouvrez un dossier d'accompagnement.</p>
-                
-                <label style="font-size: 12px; font-weight: bold;">Nom complet du producteur</label>
-                <input type="text" id="reg-name" placeholder="Ex: Isaac Tonfo">
-                
-                <label style="font-size: 12px; font-weight: bold;">Adresse Email / Contact</label>
-                <input type="email" id="reg-email" placeholder="Ex: isaac@gmail.com">
-                
-                <label style="font-size: 12px; font-weight: bold;">Spéculation Agropastorale</label>
-                <select id="reg-filiere">
-                    <option value="Poulet de chair">Poulet de chair (Élevage)</option>
-                    <option value="Porc engraisseur">Porc engraisseur (Élevage)</option>
-                    <option value="Pisciculture">Pisciculture (Poisson)</option>
-                    <option value="Maïs">Culture de Maïs</option>
-                    <option value="Bananier plantain">Bananier plantain</option>
-                    <option value="Cacao">Cacaoculteur</option>
-                    <option value="Manioc">Transformation du Manioc</option>
-                </select>
-                
-                <label style="font-size: 12px; font-weight: bold;">Type de Garantie d'Octroi</label>
-                <select id="reg-garantie-type">
-                    <option value="Caution Fonctionnaire">Caution Solidaire (Fonctionnaire)</option>
-                    <option value="Nantissement Matériel">Nantissement Matériel</option>
-                    <option value="Garantie Réelle">Garantie Réelle (Titre Foncier)</option>
-                </select>
-                
-                <label style="font-size: 12px; font-weight: bold;">Détails & Preuves de la Garantie</label>
-                <input type="text" id="reg-garantie-details" placeholder="Ex: Aval de M. Ndong">
-                
-                <button onclick="enregistrerAgriculteur()" class="btn">Créer le compte</button>
-            </div>
+            <!-- 🔥 REMPLACEZ LE BLOC DE LA CARD DE L'INSCRIPTION DANS admin.html PAR CELUI-CI : -->
+<div class="card">
+    <h3 style="margin-top:0; color: #1e293b; font-size: 15px;">👤 Inscrire un Agriculteur</h3>
+    <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Ouvrez un dossier d'accompagnement pour un nouveau producteur.</p>
+    
+    <label style="font-size: 12px; font-weight: bold;">Nom complet du producteur</label>
+    <input type="text" id="reg-name" placeholder="Ex: Isaac Tonfo">
+    
+    <label style="font-size: 12px; font-weight: bold;">Adresse Email / Contact</label>
+    <input type="email" id="reg-email" placeholder="Ex: isaac@gmail.com">
+    
+    <label style="font-size: 12px; font-weight: bold;">Spéculation Agropastorale (Cycle court)</label>
+    <select id="reg-filiere">
+        <option value="Poulet de chair">Poulet de chair (Élevage - 45 jours)</option>
+        <option value="Porc engraisseur">Porc engraisseur (Élevage)</option>
+        <option value="Pisciculture">Pisciculture (Poisson)</option>
+        <option value="Maïs">Culture de Maïs (Campagne courte)</option>
+        <option value="Bananier plantain">Bananier plantain (En production)</option>
+        <option value="Cacao">Cacao (Entretien/Production)</option>
+        <option value="Manioc">Transformation du Manioc</option>
+    </select>
+
+    <label style="font-size: 12px; font-weight: bold;">Type de Garantie d'Octroi</label>
+    <select id="reg-garantie-type">
+        <option value="Caution Fonctionnaire">Caution Solidaire (Fonctionnaire avec Bulletin)</option>
+        <option value="Nantissement Matériel">Nantissement Matériel (Moto, Camion, Moulin)</option>
+        <option value="Garantie Réelle">Garantie Réelle (Titre Foncier / Attestation Coutumière)</option>
+    </select>
+
+    <label style="font-size: 12px; font-weight: bold;">Détails & Preuves de la Garantie</label>
+    <input type="text" id="reg-garantie-details" placeholder="Ex: Aval de M. Ndong">
+    
+    <button onclick="enregistrerAgriculteur()" class="btn" style="margin-top: 10px;">Créer le compte d'accompagnement</button>
+</div>
 
             <!-- Tableau -->
             <div class="card">
