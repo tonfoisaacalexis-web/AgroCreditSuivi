@@ -32,18 +32,52 @@
     <script>
         const serverUrl = "";
 
-        function validerCodeBanque() {
-            const inputCode = document.getElementById("agency-password-field").value;
-            if (inputCode === "Ambam2026") {
-                document.getElementById("auth-container").style.display = "none";
-                document.getElementById("protected-content").style.display = "block";
-                initialiserVariablesAgence();
-                chargerClients();
-            } else {
-                alert("❌ Code incorrect.");
-                document.getElementById("agency-password-field").value = "";
-            }
+    // 🔥 REMPLACEZ LA FONCTION validerCodeBanque() DANS admin.html PAR CELLE-CI :
+async function validerCodeBanque() {
+    const inputCode = document.getElementById("agency-password-field").value.trim();
+    const errorBox = document.getElementById("auth-error-msg") || { style: {}, innerText: "" };
+    
+    if (inputCode === "") {
+        alert("⚠️ Veuillez saisir le code de sécurité de votre agence.");
+        return;
+    }
+
+    try {
+        const response = await fetch("/api/admin/login", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code_securite: inputCode })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.detail || "Échec de l'authentification bancaire.");
         }
+
+        // Stockage automatique et instantané des variables de l'agence connectée
+        localStorage.setItem("cfg_banque", result.banque_nom);
+        localStorage.setItem("cfg_agence", result.agence_nom);
+        localStorage.setItem("cfg_localite", result.localite);
+        localStorage.setItem("cfg_arrondissement", result.arrondissement);
+        localStorage.setItem("cfg_departement", result.departement);
+        localStorage.setItem("cfg_region", result.region);
+
+        // Déverrouillage visuel de l'interface d'administration
+        document.getElementById("auth-container").style.display = "none";
+        document.getElementById("protected-content").style.display = "block";
+        
+        // Rafraîchir les textes de l'en-tête et charger le portefeuille filtré de cette agence
+        document.getElementById("title-banque").innerText = result.banque_nom;
+        document.getElementById("subtitle-agence").innerText = "Agence de " + result.agence_nom + " — Département de la " + result.departement + " (" + result.region + ")";
+        
+        if (typeof chargerClients === "function") chargerClients();
+
+    } catch (error) {
+        alert(error.message);
+        document.getElementById("agency-password-field").value = "";
+    }
+}
 
         function initialiserVariablesAgence() {
             if(!localStorage.getItem("cfg_banque")) {

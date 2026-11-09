@@ -12,12 +12,25 @@ PARENT_DIR = os.path.dirname(CURRENT_DIR)
 FRONTEND_DIR = os.path.join(PARENT_DIR, "frontend")
 DB_PATH = os.path.join(CURRENT_DIR, "agrocredit.db")
 
-# 🐘 EVOLUTION DE LA BASE DE DONNÉES EN VERSION MULTI-AGENCES
+# 🔥 METTEZ À JOUR LA FONCTION D'INITIALISATION DANS main.py :
 def initialiser_base_de_donnees():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    # Table des clients avec traçabilité de l'institution et de l'agence
+    # 🛡️ Table de sécurité des accès agences
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS agences_autorisees (
+            code_securite TEXT PRIMARY KEY,
+            banque_nom TEXT NOT NULL,
+            agence_nom TEXT NOT NULL,
+            localite TEXT NOT NULL,
+            arrondissement TEXT NOT NULL,
+            departement TEXT NOT NULL,
+            region TEXT NOT NULL
+        )
+    """)
+    
+    # Table des clients
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS clients (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,48 +40,54 @@ def initialiser_base_de_donnees():
             total_epargne INTEGER DEFAULT 0,
             garantie_type TEXT NOT NULL,
             garantie_details TEXT NOT NULL,
-            banque_nom TEXT DEFAULT 'La Régionale',
-            agence_nom TEXT DEFAULT 'Ambam',
-            localite TEXT DEFAULT 'Ambam',
-            arrondissement TEXT DEFAULT 'Ambam',
-            departement TEXT DEFAULT 'Vallée-du-Ntem',
-            region TEXT DEFAULT 'Sud'
+            banque_nom TEXT,
+            agence_nom TEXT,
+            localite TEXT,
+            arrondissement TEXT,
+            departement TEXT,
+            region TEXT
         )
     """)
     
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS transactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT NOT NULL,
-            amount INTEGER NOT NULL,
-            transaction_ref TEXT NOT NULL UNIQUE
-        )
-    """)
-    
-    # Insertion du profil de test originel lié par défaut à Ambam
-    cursor.execute("SELECT COUNT(*) FROM clients")
+    # Génération automatique des premiers accès de production sécurisés si la table est vide
+    cursor.execute("SELECT COUNT(*) FROM agences_autorisees")
     if cursor.fetchone()[0] == 0:
-        cursor.execute("""
-            INSERT INTO clients (full_name, email, filiere, total_epargne, garantie_type, garantie_details, banque_nom, agence_nom, localite, arrondissement, departement, region)
-            VALUES ('Jean Du Terrain', 'jean@terrain.cm', 'Poulet de chair', 40000, 'Caution Fonctionnaire', 'Aval de M. Ndong, Enseignant au Lycée (Matricule X-123)', 'La Régionale', 'Ambam', 'Ambam', 'Ambam', 'Vallée-du-Ntem', 'Sud')
-        """)
+        cursor.executemany("""
+            INSERT INTO agences_autorisees (code_securite, banque_nom, agence_nom, localite, arrondissement, department, region)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, [
+            ('REG-AMB-2026X', 'La Régionale', 'Ambam', 'Ambam', 'Ambam', 'Vallée-du-Ntem', 'Sud'),
+            ('AFB-KYO-7741B', 'Afriland First Bank', 'Kyé-Ossi', 'Kyé-Ossi', 'Kyé-Ossi', 'Vallée-du-Ntem', 'Sud'),
+            ('BGB-OLA-9952C', 'BANGE Bank', 'Olamze', 'Olamze', 'Olamze', 'Vallée-du-Ntem', 'Sud')
+        ])
     conn.commit()
     conn.close()
 
-initialiser_base_de_donnees()
+# 🔥 AJOUTEZ CETTE ROUTE DE VÉRIFICATION DYNAMIQUE DANS main.py :
+class DemandeConnexion(BaseModel):
+    code_securite: str
 
-class ClientRegister(BaseModel):
-    full_name: str
-    email: str
-    filiere: str
-    garantie_type: str
-    garantie_details: str
-    banque_nom: str
-    agence_nom: str
-    localite: str
-    arrondissement: str
-    departement: str
-    region: str
+@app.post("/api/admin/login")
+def verifier_code_agence(demande: DemandeConnexion):
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM agences_autorisees WHERE code_securite = ?", (demande.code_securite.strip(),))
+    agence = cursor.fetchone()
+    conn.close()
+    
+    if not agence:
+        raise HTTPException(status_code=401, detail="Code de sécurité d'agence invalide ou révoqué.")
+        
+    return {
+        "status": "success",
+        "banque_nom": agence["banque_nom"],
+        "agence_nom": agence["agence_nom"],
+        "localite": agence["localite"],
+        "arrondissement": agence["arrondissement"],
+        "departement": agence["departement"],
+        "region": agence["region"]
+    }
 
 class DépôtOrangeMoney(BaseModel):
     user_id: str
