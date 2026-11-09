@@ -19,20 +19,20 @@ async function chargerConseilAgro() {
     }
 }
 
-// 🔥 REMPLACEZ LA FONCTION effectuerVersement DANS index.js PAR CETTE VERSION DYNAMIQUE :
+// 🔥 REMPLACEZ LA FONCTION effectuerVersement DANS VOTRE admin.js OU index.js PAR CELLE-CI :
 async function effectuerVersement() {
+    const idInput = document.getElementById('client-id-input'); // Récupération du nouveau champ
     const amountInput = document.getElementById('saving-amount');
     const refInput = document.getElementById('transaction-ref');
     const errorBox = document.getElementById('error-message');
     
-    // Ajoutez temporairement une invite de texte pour demander l'ID PostgreSQL ou créez un champ input id="client-id" dans index.html
-    const prodUserId = prompt("Veuillez saisir votre Identifiant Unique d'Agriculteur (Ex: 1, 2, 3...) :"); 
-    
+    const clientId = idInput.value.trim();
     const amount = parseInt(amountInput.value);
     const ref = refInput.value.trim();
 
-    if (!prodUserId) {
-        alert("⚠️ Action requise : Vous devez renseigner votre ID pour valider le versement.");
+    if (clientId === "") {
+        errorBox.innerText = "⚠️ Identifiant requis : Veuillez saisir votre ID d'agriculteur.";
+        errorBox.style.display = "block";
         return;
     }
 
@@ -55,7 +55,7 @@ async function effectuerVersement() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                user_id: prodUserId.trim(), // Transmission de l'ID PostgreSQL dynamique lue en base
+                user_id: clientId, // ID PostgreSQL dynamique envoyé au serveur
                 amount: amount, 
                 transaction_ref: ref 
             })
