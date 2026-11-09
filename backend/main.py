@@ -10,7 +10,7 @@ app = FastAPI(title="AgroCrédit Suivi")
 
 # Récupération sécurisée des clés d'accès Supabase PostgreSQL configurées sur Render
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://supabase.co")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY") # Sera configuré directement dans l'interface Render
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 # En-têtes obligatoires pour interagir avec l'API REST sécurisée de Supabase
 HEADERS = {
@@ -55,7 +55,7 @@ def obtenir_conseil():
         "content": "Pendant la saison des pluies dans la Vallée-du-Ntem, préchauffez le poulailler 24h avant l'arrivée des poussins. Utilisez des lampes chauffantes."
     }
 
-# 👤 INSCRIPTION : Insertion directe dans la table PostgreSQL de Supabase
+# 👤 INSCRIPTION : Insertion directe dans la table PostgreSQL
 @app.post("/api/register")
 def inscrire_client(client: ClientRegister):
     url = f"{SUPABASE_URL}/rest/v1/clients"
@@ -69,10 +69,10 @@ def inscrire_client(client: ClientRegister):
     }
     response = requests.post(url, headers=HEADERS, json=donnees)
     if response.status_code != 201:
-        raise HTTPException(status_code=500, detail="Échec de l'enregistrement dans la base PostgreSQL Supabase.")
-    return {"status": "success", "client": response.json()[0]}
+        raise HTTPException(status_code=500, detail="Échec de l'enregistrement dans Supabase.")
+    return {"status": "success", "client": response.json()}
 
-# 🔥 REMPLACEZ LA ROUTE POST /api/save/orange DANS main.py PAR CELLE-CI :
+# 💰 VERSEMENT : Extraction de l'index [0] sécurisée pour corriger le crash Failed
 @app.post("/api/save/orange")
 def enregistrer_epargne(depot: DépôtOrangeMoney):
     if depot.amount < 20000:
@@ -81,20 +81,23 @@ def enregistrer_epargne(depot: DépôtOrangeMoney):
     try:
         user_id_num = int(depot.user_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="L'identifiant doit être un nombre valide.")
+        raise HTTPException(status_code=400, detail="L'identifiant de l'agriculteur doit être un nombre valide.")
 
     url_client = f"{SUPABASE_URL}/rest/v1/clients?id=eq.{user_id_num}"
     res_client = requests.get(url_client, headers=HEADERS)
     
-    if res_client.status_code != 200 or not res_client.json():
+    res_json = res_client.json()
+    if res_client.status_code != 200 or not res_json or len(res_json) == 0:
         raise HTTPException(status_code=404, detail="Agriculteur introuvable dans la base PostgreSQL.")
     
-    client_data = res_client.json()[0]
+    # Extraction sécurisée du dictionnaire dans le tableau JSON
+    client_data = res_json[0]
     nouveau_solde = int(client_data["total_epargne"]) + depot.amount
 
     res_patch = requests.patch(url_client, headers=HEADERS, json={"total_epargne": nouveau_solde})
-     if res_patch.status_code != 200 and res_patch.status_code != 204:
+    if res_patch.status_code != 200 and res_patch.status_code != 204:
         raise HTTPException(status_code=500, detail="Échec de la mise à jour du solde d'épargne.")
+
     url_tx = f"{SUPABASE_URL}/rest/v1/transactions"
     requests.post(url_tx, headers=HEADERS, json={
         "user_id": str(user_id_num),
@@ -103,14 +106,14 @@ def enregistrer_epargne(depot: DépôtOrangeMoney):
     })
     return {"status": "success"}
 
-# 🏦 PORTFEUILLE : Récupération en temps réel de tous les comptes stockés dans PostgreSQL
+# 🏦 PORTFEUILLE : Liste globale
 @app.get("/api/admin/clients")
 def obtenir_tous_les_clients():
     url = f"{SUPABASE_URL}/rest/v1/clients?select=*"
     response = requests.get(url, headers=HEADERS)
     return {"clients": response.json() if response.status_code == 200 else []}
 
-# 📊 EVALUATION AUTOMATIQUE RESTAURÉE ET STABILISÉE POUR POSTGRESQL
+# 📊 EVALUATION AUTOMATIQUE SÉCURISÉE
 @app.get("/api/admin/evaluation/{client_id}")
 def evaluer_projet_bancable(client_id: str):
     modeles_rentabilite = {
@@ -124,13 +127,12 @@ def evaluer_projet_bancable(client_id: str):
     }
     url = f"{SUPABASE_URL}/rest/v1/clients?id=eq.{client_id}"
     res = requests.get(url, headers=HEADERS)
-    if res.status_code != 200 or not res.json():
+    
+    res_json = res.json()
+    if res.status_code != 200 or not res_json or len(res_json) == 0:
         raise HTTPException(status_code=404, detail="Client introuvable.")
     
-    # Extraction sécurisée de la ligne de données
-    donnees_json = res.json()
-    client_cible = donnees_json[0] if isinstance(donnees_json, list) and len(donnees_json) > 0 else donnees_json
-    
+    client_cible = res_json[0]
     modele = modeles_rentabilite.get(client_cible["filiere"], {"cycle": "Indéfini", "invest": 1000000, "ca": 1400000, "charges": 350000})
     
     credit_sollicite = 850000
