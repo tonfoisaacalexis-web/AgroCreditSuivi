@@ -7,16 +7,15 @@
     <style>
         body { font-family: sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 0; }
         nav { background-color: #15803d; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        main { max-w: 1000px; margin: 20px auto; padding: 0 20px; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; margin-bottom: 20px; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .box-savings { background-color: #f8fafc; padding: 15px; border-radius: 8px; }
-        .box-credit { background-color: #f0fdf4; padding: 15px; border-radius: 8px; color: #166534; }
-        .btn { width: 100%; background-color: #f97316; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        main { max-w: 800px; margin: 30px auto; padding: 0 20px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 25px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .box-savings { background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #f1f5f9; }
+        .box-credit { background-color: #f0fdf4; padding: 20px; border-radius: 8px; color: #166534; border: 1px solid #bbf7d0; }
+        .btn { width: 100%; background-color: #f97316; color: white; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; }
         .btn:hover { background-color: #ea580c; }
-        input { width: 100%; padding: 10px; margin: 8px 0 15px 0; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
-        .error { color: #b91c1c; background-color: #fef2f2; padding: 10px; border-radius: 8px; font-size: 13px; display: none; margin-bottom: 15px; }
-        .tip-box { background-color: #fefaf0; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 0 8px 8px 0; color: #78350f; font-size: 13px; }
+        input { width: 100%; padding: 12px; margin: 8px 0 20px 0; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        .error { color: #b91c1c; background-color: #fef2f2; padding: 12px; border-radius: 8px; font-size: 13px; display: none; margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -30,69 +29,44 @@
     </nav>
 
     <main>
-        <div>
-            <div class="card">
-                <h2 style="font-size: 14px; color: #64748b; margin-top: 0;">📈 Point de situation financière</h2>
-                <div class="grid-2">
-                    <div class="box-savings">
-                        <small>Total Épargné Brut</small>
-                        <div style="font-size: 24px; font-weight: bold; margin-top: 5px;" id="display-savings">0 CFA</div>
-                    </div>
-                    <div class="box-credit">
-                        <small>Droit au Crédit Levier (85%)</small>
-                        <div style="font-size: 24px; font-weight: bold; margin-top: 5px;" id="display-credit">0 CFA</div>
-                    </div>
+        <!-- Situation Financière Épurée -->
+        <div class="card">
+            <h2 style="font-size: 14px; color: #64748b; margin-top: 0; text-transform: uppercase; letter-spacing: 0.5px;">📈 Point de situation financière</h2>
+            <div class="grid-2">
+                <div class="box-savings">
+                    <small style="color: #64748b; font-weight: bold;">Total Épargné Brut</small>
+                    <div style="font-size: 26px; font-weight: bold; margin-top: 5px; color: #0f172a;" id="display-savings">0 CFA</div>
                 </div>
-            </div>
-
-            <div class="card">
-                <h2 style="font-size: 16px; margin-top: 0;">💰 Enregistrer un versement mensuel</h2>
-                <p style="font-size: 12px; color: #64748b;">Entrez le montant réglementaire d'épargne mensuel (Minimum 20 000 CFA).</p>
-                
-                <div id="error-message" class="error"></div>
-
-                <label style="font-size: 12px; font-weight: bold;">Votre Identifiant Unique d'Agriculteur (ID)</label>
-                <input type="text" id="client-id-input" placeholder="Ex: 1">
-
-                <label style="font-size: 12px; font-weight: bold;">Montant du versement (CFA)</label>
-                <input type="number" id="saving-amount" placeholder="Ex: 20000">
-
-                <label style="font-size: 12px; font-weight: bold;">Numéro de transaction Orange Money</label>
-                <input type="text" id="transaction-ref" placeholder="Ex: TXN987654321" style="text-transform: uppercase;">
-                
-                <button onclick="effectuerVersement()" class="btn">Confirmer le dépôt Orange Money</button>
+                <div class="box-credit">
+                    <small style="font-weight: bold;">Droit au Crédit Levier (85%)</small>
+                    <div style="font-size: 26px; font-weight: bold; margin-top: 5px;" id="display-credit">0 CFA</div>
+                </div>
             </div>
         </div>
 
-        <div>
-            <div class="card">
-                <h2 style="font-size: 14px; color: #64748b; margin-top: 0;">🚜 Conseil Agropastoral Actif</h2>
-                <div id="agro-tips-box">
-                    <p style="font-size: 12px; font-style: italic; color: #64748b;">Le conseil agropastoral est en cours de chargement...</p>
-                </div>
-            </div>
+        <!-- Formulaire de Dépôt de Contrôle -->
+        <div class="card">
+            <h2 style="font-size: 16px; margin-top: 0; color: #1e293b;">💰 Enregistrer un versement mensuel</h2>
+            <p style="font-size: 12px; color: #64748b; margin-bottom: 20px;">Déclarez votre versement pour incrémenter de manière sécurisée votre garantie de nantissement (Minimum 20 000 CFA).</p>
+            
+            <div id="error-message" class="error"></div>
+
+            <label style="font-size: 12px; font-weight: bold; color: #475569;">Votre Identifiant Unique d'Agriculteur (ID)</label>
+            <input type="text" id="client-id-input" placeholder="Saisissez votre ID unique (Ex: 1)">
+
+            <label style="font-size: 12px; font-weight: bold; color: #475569;">Montant du versement (CFA)</label>
+            <input type="number" id="saving-amount" placeholder="Ex: 20000">
+
+            <label style="font-size: 12px; font-weight: bold; color: #475569;">Numéro de transaction Orange Money</label>
+            <input type="text" id="transaction-ref" placeholder="Ex: CO261109..." style="text-transform: uppercase;">
+            
+            <button onclick="effectuerVersement()" class="btn">Confirmer le dépôt Orange Money</button>
         </div>
     </main>
+
     <script>
         let totalEpargne = 0;
-        const serverUrl = ""; // Requête relative universelle
-
-        async function chargerConseilAgro() {
-            const tipsBox = document.getElementById('agro-tips-box');
-            try {
-                const response = await fetch(serverUrl + "/api/tips/elevage");
-                const data = await response.json();
-                
-                tipsBox.innerHTML = `
-                    <div class="tip-box">
-                        <strong style="display: block; margin-bottom: 5px;">` + data.title + `</strong>
-                        ` + data.content + `
-                    </div>
-                `;
-            } catch (error) {
-                tipsBox.innerHTML = '<p style="font-size: 12px; color: #b91c1c; font-weight: bold;">⚠️ Le moteur en ligne ne répond pas. Vérifiez le statut Render.</p>';
-            }
-        }
+        const serverUrl = "";
 
         async function effectuerVersement() {
             const idInput = document.getElementById('client-id-input');
@@ -154,15 +128,13 @@
                 amountInput.value = "";
                 refInput.value = "";
 
-                alert("✅ Succès ! Dépôt Orange Money enregistré sur SQLite de l'agence.");
+                alert("✅ Succès ! Dépôt Orange Money validé et enregistré de manière persistante dans la base de données de l'agence.");
 
             } catch (error) {
                 errorBox.innerText = "❌ Échec : " + error.message;
                 errorBox.style.display = "block";
             }
         }
-
-        window.onload = chargerConseilAgro;
     </script>
 </body>
 </html>

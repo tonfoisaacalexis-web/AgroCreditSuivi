@@ -87,13 +87,6 @@ def lire_espace_banque():
     with open(os.path.join(FRONTEND_DIR, "admin.html"), "r", encoding="utf-8") as f:
         return f.read()
 
-@app.get("/api/tips/elevage")
-def obtenir_conseil():
-    return {
-        "title": "🌡️ Gestion thermique du poulailler à Ambam",
-        "content": "Pendant la saison des pluies dans la Vallée-du-Ntem, préchauffez le poulailler 24h avant l'arrivée des poussins. Utilisez des lampes chauffantes."
-    }
-
 # 👤 INSCRIPTION : Liaison explicite avec la banque et l'agence émettrice
 @app.post("/api/register")
 def inscrire_client(client: ClientRegister):
@@ -167,6 +160,7 @@ def obtenir_tous_les_clients(banque: str = "La Régionale", agence: str = "Ambam
     conn.close()
     return {"clients": comptes}
 
+# 📊 EVALUATION FINANCIÈRE RECALCULÉE AVEC LES 2 MOIS DE GRÂCE COBAC
 @app.get("/api/admin/evaluation/{client_id}")
 def evaluer_projet_bancable(client_id: str):
     modeles_rentabilite = {
@@ -184,8 +178,10 @@ def evaluer_projet_bancable(client_id: str):
     cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
     row = cursor.fetchone()
     conn.close()
+    
     if not row:
         raise HTTPException(status_code=404, detail="Client introuvable.")
+        
     modele = modeles_rentabilite.get(row["filiere"], {"cycle": "Indéfini", "invest": 1000000, "ca": 1400000, "charges": 350000})
     credit_sollicite = 850000
     duree_totale = 12
@@ -193,6 +189,7 @@ def evaluer_projet_bancable(client_id: str):
     mois_remboursement_effectif = duree_totale - mois_differe
     total_interets = int(credit_sollicite * 0.01 * duree_totale)
     mensualite_globale = int((credit_sollicite + total_interets) / mois_remboursement_effectif)
+    
     return {
         "client_name": row["full_name"],
         "speculation": row["filiere"],
