@@ -1,4 +1,4 @@
-const serverUrl = ""; // Utilise automatiquement l'adresse actuelle du serveur
+const serverUrl = ""; // Adresse relative universelle pour éviter les conflits d'URLs
 
 // 1. Charger la liste des clients depuis le serveur Render
 async function chargerClients() {
@@ -77,6 +77,7 @@ async function enregistrerAgriculteur() {
     }
 }
 
+// 3. Générer le canevas d'évaluation de projet de levier avec les 2 mois de différé de grâce
 async function analyserProjet(clientId) {
     const contentBox = document.getElementById('evaluation-content');
     contentBox.innerHTML = "<p style='font-style:italic;'>Analyse des indicateurs de viabilité et calcul de l'échéancier...</p>";
@@ -102,12 +103,12 @@ async function analyserProjet(clientId) {
                 <p style="margin:2px 0;">Crédit Levier Sollicité (85%) : <strong style="color:#166534;">${data.credit_sollicite_banque.toLocaleString()} CFA</strong></p>
                 
                 <hr style="border:0; border-top:1px solid #e2e8f0; margin:10px 0;">
-                <p style="margin:4px 0; font-weight:bold; color:#2563eb;">📅 ÉCHÉANCIER DE REMBOURSEMENT AUTOMATIQUE :</p>
+                <p style="margin:4px 0; font-weight:bold; color:#2563eb;">📅 ÉCHÉANCIER DE REMBOURSEMENT LOGIQUE :</p>
                 <div style="background:#f0fdf4; padding:10px; border-radius:6px; border:1px solid #bbf7d0; margin-bottom:10px; font-size:11px;">
-                    <p style="margin:2px 0;">Durée du crédit : <strong>${data.duree_mois} mois</strong></p>
-                    <p style="margin:2px 0;">Taux appliqué : <strong>${data.taux_annuel} lissé (Dégressif)</strong></p>
-                    <p style="margin:4px 0; font-size:13px; color:#166534;">👉 Traite mensuelle : <strong>${data.mensualite.toLocaleString('fr-FR')} CFA / mois</strong></p>
-                    <p style="margin:2px 0; color:#64748b; font-size:10px;">Coût total du crédit (intérêts) : ${data.total_interets.toLocaleString()} CFA</p>
+                    <p style="margin:2px 0;">Durée totale du contrat : <strong>${data.duree_mois} mois</strong></p>
+                    <p style="margin:2px 0; color:#c2410c; font-weight:bold;">⚠️ Période de grâce (Différé total) : Mois 1 et Mois 2 (0 CFA)</p>
+                    <p style="margin:4px 0; font-size:13px; color:#166534; font-weight:bold;">👉 Traite (Mois 3 à Mois 12) : ${data.mensualite.toLocaleString('fr-FR')} CFA / mois</p>
+                    <p style="margin:2px 0; color:#64748b; font-size:10px;">Coût total du crédit (intérêts) : ${data.total_interets.toLocaleString()} CFA (Taux : ${data.taux_annuel})</p>
                 </div>
 
                 <hr style="border:0; border-top:1px solid #e2e8f0; margin:10px 0;">
