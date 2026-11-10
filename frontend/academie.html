@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Académie AgroCrédit - Espace Vulgarisation & Télé-Conseil</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f8fafc; color: #0f172a; margin: 0; padding: 0; }
+        nav { background-color: #15803d; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        main { max-w: 1200px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 2fr 1fr; gap: 25px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 25px; }
+        .grid-fiches { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .fiche-box { border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; background: #fafafa; cursor: pointer; transition: 0.2s; }
+        .fiche-box:hover { border-color: #15803d; background: #f0fdf4; }
+        .btn { background-color: #15803d; color: white; padding: 10px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; }
+        .btn:hover { background-color: #166534; }
+        input, textarea { width: 100%; padding: 10px; margin: 8px 0 15px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+        .chat-box { background: #f1f5f9; height: 300px; border-radius: 8px; padding: 15px; overflow-y: auto; font-size: 13px; border: 1px solid #cbd5e1; }
+        .msg { margin-bottom: 12px; padding: 8px 12px; border-radius: 6px; max-width: 85%; }
+        .msg-client { background: #dcfce7; color: #166534; margin-left: auto; text-align: right; }
+        .msg-expert { background: white; color: #1e293b; border: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div>
+            <h1 style="margin: 0; font-size: 18px;">🌱 Académie AgroCrédit Suivi</h1>
+            <small style="opacity: 0.9; text-transform: uppercase;">Centre de Vulgarisation Numérique & Télé-Conseil</small>
+        </div>
+        <span style="background: #f97316; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">Accès Agriculteur Validé</span>
+    </nav>
+
+    <main>
+        <!-- 📚 Centre de fiches techniques et vulgarisation -->
+        <div>
+            <div class="card">
+                <h2 style="margin-top:0; color: #15803d; font-size: 16px;">📚 Fiches Techniques & Bonnes Pratiques de Production</h2>
+                <p style="font-size: 13px; color: #64748b;">Consultez les guides de vulgarisation officiels calibrés pour le climat de la Vallée-du-Ntem.</p>
+                
+                <div class="grid-fiches">
+                    <div class="fiche-box" onclick="ouvrirFiche('poulet')">
+                        <h4 style="margin:0 0 5px 0; color: #1e293b;">🌡️ Poulet de Chair : Chauffage</h4>
+                        <p style="font-size:12px; color:#64748b; margin:0;">Gestion de la température du poulailler en saison des pluies à Ambam.</p>
+                    </div>
+                    <div class="fiche-box" onclick="ouvrirFiche('peste')">
+                        <h4 style="margin:0 0 5px 0; color: #1e293b;">🐖 Porc : Prévention de la Peste</h4>
+                        <p style="font-size:12px; color:#64748b; margin:0;">Mesures d'étanchéité sanitaire et biosécurité des bâtiments d'engraissement.</p>
+                    </div>
+                    <div class="fiche-box" onclick="ouvrirFiche('pisciculture')">
+                        <h4 style="margin:0 0 5px 0; color: #1e293b;">🐟 Pisciculture : Qualité de l'Eau</h4>
+                        <p style="font-size:12px; color:#64748b; margin:0;">Contrôle du pH et renouvellement de l'eau des étangs d'Olamze.</p>
+                    </div>
+                    <div class="fiche-box" onclick="ouvrirFiche('mais')">
+                        <h4 style="margin:0 0 5px 0; color: #1e293b;">🌽 Maïs : Calendrier des Semis</h4>
+                        <p style="font-size:12px; color:#64748b; margin:0;">Optimisation des rendements en fonction des précipitations du Sud.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modèle de visionnage de fiche -->
+            <div class="card" id="fiche-viewer" style="display:none; border-top: 4px solid #15803d;">
+                <h3 id="viewer-title" style="margin-top:0; color:#1e293b;">...</h3>
+                <p id="viewer-content" style="font-size:13px; line-height:1.6; color:#334155; white-space:pre-wrap;">...</p>
+            </div>
+        </div>
+
+        <!-- 💬 Espace de Télé-Conseil en direct avec un expert agronome -->
+        <div>
+            <div class="card">
+                <h2 style="margin-top:0; color: #0f172a; font-size: 16px;">💬 Assistance Expert à Distance</h2>
+                <p style="font-size:12px; color:#64748b; margin-bottom:15px;">Posez vos questions techniques (maladies, alimentation, intrants). Un ingénieur agronome vous répondra sous 24h.</p>
+                
+                <div class="chat-box" id="chat-messages">
+                    <div class="msg msg-expert">
+                        👋 <strong>Système :</strong> Bienvenue dans votre espace de Télé-Conseil. Posez votre question agropastorale ci-dessous.
+                    </div>
+                </div>
+                
+                <textarea id="client-question" rows="3" placeholder="Tapez votre question ici (Ex: Mes poulets refusent de s'alimenter, que faire ?)..." style="margin-top:15px;"></textarea>
+                <button onclick="envoyerQuestion()" class="btn">✉️ Envoyer la Note Vocale / Texte</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const fichesContenu = {
+            poulet: "🌡️ GUIDE THERMIQUE - POULET DE CHAIR (VALLÉE-DU-NTEM)\n\nEn saison des pluies à Ambam, l'humidité relative augmente les risques de maladies respiratoires chez les poussins. \n\n1. Préparation : Préchauffez le bâtiment 24 heures avant l'arrivée des poussins.\n2. Température : Maintenez 35°C en Semaine 1, puis descendez de 2°C chaque semaine.\n3. Source : Utilisez des lampes radiantes ou des radiants à gaz.",
+            peste: "🐖 PROTOCOLE DE BIOSÉCURITÉ - ÉLEVAGE PORCIN\n\nLa peste porcine africaine est virulente dans la région du Sud. Aucun traitement n'existe.\n\n1. Clôture : Interdiction totale d'accès aux personnes étrangères à l'exploitation.\n2. Pédiluve : Installez un bac de désinfection contenant de la chaux vive à l'entrée de chaque loge.\n3. Alimentation : Ne distribuez jamais de restes de repas non cuits.",
+            pisciculture: "🐟 PISCICULTURE - SUIVI DES ÉTANGS\n\n1. Oxygénation : Observez les poissons à l'aube. S'ils pipent l'air en surface, l'eau manque d'oxygène.\n2. Renouvellement : Changez 10% du volume d'eau tous les 15 jours.\n3. Fertilisation : Utilisez de la fiente de poule sèche pour stimuler le phytoplancton.",
+            mais: "🌽 MAÏS - OPTIMISATION DES INTRANTS\n\n1. Semis : Écartement strict de 75 cm entre les lignes et 25 cm entre les poquets.\n2. Fertilisation : Apport de NPK (20-10-10) au 14ème jour après la levée.\n3. Sarclage : Premier nettoyage impératif avant le premier apport d'engrais."
+        };
+
+        function ouvrirFiche(cle) {
+            document.getElementById("viewer-title").innerText = document.querySelector(`[onclick="ouvrirFiche('${cle}')"] h4`).innerText;
+            document.getElementById("viewer-content").innerText = fichesContenu[cle];
+            document.getElementById("fiche-viewer").style.display = "block";
+            window.scrollTo({ top: document.getElementById("fiche-viewer").offsetTop, behavior: 'smooth' });
+        }
+
+        function envoyerQuestion() {
+            const txtInput = document.getElementById("client-question");
+            const container = document.getElementById("chat-messages");
+            if(txtInput.value.trim() === "") return;
+
+            // 1. Ajouter le message du client
+            container.innerHTML += `<div class="msg msg-client"><strong>Vous :</strong> ${txtInput.value.trim()}</div>`;
+            
+            const question = txtInput.value.trim();
+            txtInput.value = "";
+            container.scrollTop = container.scrollHeight;
+
+            // 2. Simulation d'une réponse automatique instantanée de l'expert agronome centralisé
+            setTimeout(() => {
+                container.innerHTML += `
+                    <div class="msg msg-expert">
+                        👨‍🌾 <strong>Ingénieur Agronome (Académie) :</strong> Bien reçu. Votre question technique sur la Vallée-du-Ntem a été transmise à notre cellule de réponse. Un technicien analyse votre dossier. Ne stoppez pas l'alimentation entre-temps.
+                    </div>`;
+                container.scrollTop = container.scrollHeight;
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
