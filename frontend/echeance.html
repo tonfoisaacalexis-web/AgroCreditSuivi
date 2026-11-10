@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroCrédit Suivi - Planification des Échéances</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f1f5f9; color: #0f172a; margin: 0; padding: 0; }
+        nav { background-color: #0f172a; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        main { max-w: 1450px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 2fr 1fr; gap: 25px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; height: fit-content; }
+        input, select { width: 100%; padding: 10px; margin: 8px 0 15px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 13px; }
+        .btn { width: 100%; background-color: #2563eb; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .btn:hover { background-color: #1d4ed8; }
+        .btn-pay { background-color: #475569; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background-color: #f8fafc; color: #64748b; font-weight: bold; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; text-transform: uppercase; }
+        .status-grace { background-color: #fef3c7; color: #d97706; }
+        .status-wait { background-color: #e2e8f0; color: #475569; }
+        .status-paid { background-color: #dcfce7; color: #15803d; }
+        .status-late { background-color: #b91c1c; color: white; font-weight: bold; }
+        .octroi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 15px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #cbd5e1; }
+        .octroi-box { background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; text-align: center; }
+        .octroi-val { font-size: 14px; font-weight: bold; color: #1e293b; margin-top: 5px; }
+    </style>
+    <!-- Chargement déporté de la logique métier -->
+    <script src="/static/echeance.js" defer></script>
+</head>
+<body>
+
+    <nav>
+        <div>
+            <h1 style="margin: 0; font-size: 18px;">🏦 AgroCrédit Suivi — Suivi des Échéances & Recouvrements</h1>
+            <small style="opacity: 0.8;">Calendrier Prudentiel COBAC Multi-Agences</small>
+        </div>
+        <a href="/admin" style="color: white; text-decoration: none; font-weight: bold; font-size: 13px; background-color: #334155; padding: 8px 12px; border-radius: 6px;">⬅️ Tableau de Bord</a>
+    </nav>
+
+    <main>
+        <!-- Calendrier Dynamique -->
+        <div class="card">
+            <h3 style="margin-top: 0; color: #1e293b; font-size: 16px;">📅 Calendrier Mensuel des Annuités</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="search-client-id" placeholder="Entrez l'ID de l'agriculteur (Ex: 1)" style="margin: 0;">
+                <button onclick="chargerCalendrierRecouvrement()" class="btn" style="width: auto; white-space: nowrap; padding: 0 20px;">🔍 Charger le Plan</button>
+            </div>
+            
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: none; border: 1px solid #e2e8f0;" id="client-info-banner">
+                <div style="font-size: 14px; color: #475569; padding-bottom: 10px; border-bottom: 1px dashed #e2e8f0;">
+                    👤 <strong>Agriculteur :</strong> <span id="txt-client-name" style="color: #0f172a; font-weight: bold;">...</span> | 
+                    🚜 <strong>Spéculation :</strong> <span id="txt-client-filiere" style="color: #0f172a; font-weight: bold;">...</span>
+                </div>
+                
+                <div class="octroi-grid">
+                    <div class="octroi-box">
+                        <small style="color: #64748b;">💰 Crédit Alloué Effectif</small>
+                        <div class="octroi-val" id="lbl-credit-total" style="color: #166534;">0 CFA</div>
+                    </div>
+                    <div class="octroi-box">
+                        <small style="color: #64748b;">📅 Début Crédit</small>
+                        <div class="octroi-val" id="lbl-date-debut">--/--/----</div>
+                    </div>
+                    <div class="octroi-box">
+                        <small style="color: #64748b;">📅 Fin Financement</small>
+                        <div class="octroi-val" id="lbl-date-fin">--/--/----</div>
+                    </div>
+                    <div class="octroi-box">
+                        <small style="color: #64748b;">📈 Taux d'Intérêt</small>
+                        <div class="octroi-val" id="lbl-taux-credit" style="color: #2563eb;">0 %</div>
+                    </div>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mois</th>
+                        <th>Date Limite</th>
+                        <th>Traite Attendue</th>
+                        <th>Montant Payé</th>
+                        <th>Date Dépôt</th>
+                        <th>Réf Orange Money</th>
+                        <th>Statut</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="table-remboursements-body">
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: #94a3b8; font-style: italic; padding: 20px 0;">Saisissez un ID d'agriculteur pour charger le plan d'amortissement.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Formulaire de Traite -->
+        <div class="card">
+            <h3 style="margin-top: 0; color: #1e293b; font-size: 16px;">💸 Enregistrer une Traite Reçue</h3>
+            <p style="font-size: 12px; color: #64748b; margin-bottom: 20px;">Validez l'échéance après confirmation du transfert mobile.</p>
+            
+            <label style="font-size: 12px; font-weight: bold; color: #475569;">Numéro de la Traite concernée</label>
+            <select id="pay-num-echeance">
+                <option value="1">Mois 1 (Grâce)</option><option value="2">Mois 2 (Grâce)</option>
+                <option value="3">Mois 3 (Réelle)</option><option value="4">Mois 4</option>
+                <option value="5">Mois 5</option><option value="6">Mois 6</option>
+                <option value="7">Mois 7</option><option value="8">Mois 8</option>
+                <option value="9">Mois 9</option><option value="10">Mois 10</option>
+                <option value="11">Mois 11</option><option value="12">Mois 12</option>
+            </select>
+
+            <label style="font-size: 12px; font-weight: bold; color: #475569;">Montant versé (CFA)</label>
+            <input type="number" id="pay-amount" placeholder="Ex: 95200">
+
+            <label style="font-size: 12px; font-weight: bold; color: #475569;">ID de Transaction Orange Money</label>
+            <input type="text" id="pay-tx-ref" placeholder="Ex: CO261110..." style="text-transform: uppercase;">
+
+            <button onclick="validerPaiementTraite()" class="btn" style="background-color: #16a34a;">💾 Enregistrer l'Encaissement Mobile</button>
+        </div>
+    </main>
+</body>
+</html>

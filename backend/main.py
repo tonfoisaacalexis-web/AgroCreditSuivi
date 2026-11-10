@@ -103,9 +103,10 @@ def lire_espace_banque():
     with open(os.path.join(FRONTEND_DIR, "admin.html"), "r", encoding="utf-8") as f:
         return f.read()
 
+# 🔥 RENDRE LA ROUTE DU SERVEUR COMPATIBLE AVEC VOTRE NOUVEAU FICHIER ECHEANCE.HTML
 @app.get("/recouvrement", response_class=HTMLResponse)
 def lire_espace_remboursement():
-    with open(os.path.join(FRONTEND_DIR, "remboursement.html"), "r", encoding="utf-8") as f:
+    with open(os.path.join(FRONTEND_DIR, "echeance.html"), "r", encoding="utf-8") as f:
         return f.read()
         # 🔥 AJOUTEZ CETTE ROUTE TRÈS COURTE DANS VOTRE MAIN.PY :
 @app.get("/recu", response_class=HTMLResponse)

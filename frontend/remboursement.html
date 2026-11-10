@@ -7,7 +7,7 @@
     <style>
         body { font-family: sans-serif; background-color: #f1f5f9; color: #0f172a; margin: 0; padding: 0; }
         nav { background-color: #0f172a; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        main { max-w: 1350px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 1.8fr 1fr; gap: 25px; }
+        main { max-w: 1450px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 2fr 1fr; gap: 25px; }
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; height: fit-content; }
         input, select { width: 100%; padding: 10px; margin: 8px 0 15px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 13px; }
         .btn { width: 100%; background-color: #2563eb; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
@@ -22,6 +22,11 @@
         .status-wait { background-color: #e2e8f0; color: #475569; }
         .status-paid { background-color: #dcfce7; color: #15803d; }
         .status-late { background-color: #b91c1c; color: white; font-weight: bold; }
+        
+        /* Style des cellules de planification d'octroi */
+        .octroi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 15px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #cbd5e1; }
+        .octroi-box { background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; text-align: center; }
+        .octroi-val { font-size: 15px; font-weight: bold; color: #1e293b; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -35,7 +40,7 @@
     </nav>
 
     <main>
-        <!-- Calendrier mois par mois -->
+        <!-- 📅 Calendrier mois par mois -->
         <div class="card">
             <h3 style="margin-top: 0; color: #1e293b; font-size: 16px;">📅 Calendrier Mensuel des Annuités</h3>
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
@@ -43,8 +48,32 @@
                 <button onclick="chargerCalendrierRecouvrement()" class="btn" style="width: auto; white-space: nowrap; padding: 0 20px;">🔍 Charger le Plan</button>
             </div>
             
-            <div style="background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: none;" id="client-info-banner">
-                👤 <strong>Agriculteur :</strong> <span id="txt-client-name">...</span> | 🚜 <strong>Spéculation :</strong> <span id="txt-client-filiere">...</span>
+            <!-- Informations Agriculteur Élargies -->
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: none; border: 1px solid #e2e8f0;" id="client-info-banner">
+                <div style="font-size: 14px; color: #475569; padding-bottom: 10px; border-bottom: 1px dashed #e2e8f0;">
+                    👤 <strong>Agriculteur :</strong> <span id="txt-client-name" style="color: #0f172a; font-weight: bold;">...</span> | 
+                    🚜 <strong>Spéculation :</strong> <span id="txt-client-filiere" style="color: #0f172a; font-weight: bold;">...</span>
+                </div>
+                
+                <!-- 🔥 LES CELLULES DE PLANIFICATION DU CRÉDIT EFFECTIF ALLOUÉ -->
+                <div class="octroi-grid">
+                    <div class="octroi-box">
+                        <small style="color: #64748b; font-weight: bold;">💰 Crédit Alloué Effectivement</small>
+                        <div class="octroi-val" id="lbl-credit-total" style="color: #166534;">0 CFA</div>
+                    </div>
+                    <div class="octroi-box">
+                        <small style="color: #64748b; font-weight: bold;">📅 Date Début Crédit</small>
+                        <div class="octroi-val" id="lbl-date-debut">--/--/----</div>
+                    </div>
+                    <div class="octroi-box">
+                        <small style="color: #64748b; font-weight: bold;">📅 Date Fin Financement</small>
+                        <div class="octroi-val" id="lbl-date-fin">--/--/----</div>
+                    </div>
+                    <div class="octroi-box">
+                        <small style="color: #64748b; font-weight: bold;">📈 Taux d'Intérêt Appliqué</small>
+                        <div class="octroi-val" id="lbl-taux-credit" style="color: #2563eb;">0 %</div>
+                    </div>
+                </div>
             </div>
 
             <table>
@@ -68,7 +97,7 @@
             </table>
         </div>
 
-        <!-- Formulaire d'encaissement Orange Money -->
+        <!-- 💸 Formulaire d'encaissement Orange Money -->
         <div class="card">
             <h3 style="margin-top: 0; color: #1e293b; font-size: 16px;">💸 Enregistrer une Traite Reçue</h3>
             <p style="font-size: 12px; color: #64748b; margin-bottom: 20px;">Validez l'échéance d'un producteur après confirmation du transfert mobile.</p>
@@ -95,9 +124,11 @@
             <label style="font-size: 12px; font-weight: bold; color: #475569;">ID de la Transaction Orange Money</label>
             <input type="text" id="pay-tx-ref" placeholder="Ex: CO261110.0815.A4521" style="text-transform: uppercase;">
 
+           <!-- 🔥 COLLEZ CE BLOC POUR COMPLÉTER ET FERMER DEFINITIVEMENT LE FICHIER REMBOURSEMENT.HTML : -->
             <button onclick="validerPaiementTraite()" class="btn" style="background-color: #16a34a;">💾 Enregistrer l'Encaissement Mobile</button>
         </div>
     </main>
+
     <script>
         const serverUrl = "";
 
@@ -109,14 +140,25 @@
             if (clientId === "") { alert("⚠️ Saisissez l'ID."); return; }
 
             try {
+                const evalResponse = await fetch("/api/admin/evaluation/" + clientId);
+                if (!evalResponse.ok) { throw new Error("Données d'octroi introuvables."); }
+                const evalData = await evalResponse.json();
+
                 const response = await fetch("/api/recouvrement/echéancier/" + clientId);
                 if (!response.ok) { throw new Error("Agriculteur introuvable."); }
-                
                 const data = await response.json();
+                
                 document.getElementById("txt-client-name").innerText = data.client_name;
                 document.getElementById("txt-client-filiere").innerText = data.filiere;
-                banner.style.display = "block";
                 
+                document.getElementById("lbl-credit-total").innerText = evalData.credit_sollicite_banque.toLocaleString('fr-FR') + " CFA";
+                if (data.echeances.length > 0) {
+                    document.getElementById("lbl-date-debut").innerText = new Date(data.echeances[0].date_theorique).toLocaleDateString('fr-FR');
+                    document.getElementById("lbl-date-fin").innerText = new Date(data.echeances[data.echeances.length - 1].date_theorique).toLocaleDateString('fr-FR');
+                }
+                document.getElementById("lbl-taux-credit").innerText = evalData.taux_annuel;
+                
+                banner.style.display = "block";
                 tbody.innerHTML = "";
                 const dateDuJour = new Date();
 
@@ -133,8 +175,6 @@
                         badgeClass = "status-grace";
                     } else if (ech.statut === "Payé") {
                         badgeClass = "status-paid";
-                        
-                        // Sécurisation stricte de l'échappement pour éviter la coupure de chaîne JavaScript
                         const nomPropre = data.client_name.replace(/'/g, "\\'");
                         boutonAction = `<button onclick="imprimerRecuTraite('${nomPropre}', '${ech.num_echeance}', '${ech.date_theorique}', '${ech.montant_paye}', '${ech.date_paiement}', '${ech.transaction_ref}')" class="btn-pay">🖨️ Reçu</button>`;
                     }
@@ -174,17 +214,12 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        client_id: clientId, 
-                        num_echeance: parseInt(numEcheance), 
-                        amount: parseInt(amount), 
-                        transaction_ref: txRef
+                        client_id: clientId, num_echeance: parseInt(numEcheance), amount: parseInt(amount), transaction_ref: txRef
                     })
                 });
 
-                const result = await response.json();
-                if (!response.ok) { throw new Error(result.detail || "Échec."); }
-
-                alert("✅ Échéance enregistrée avec succès !");
+                if (!response.ok) { throw new Error("Échec d'enregistrement."); }
+                alert("✅ Échéance enregistrée !");
                 document.getElementById("pay-amount").value = "";
                 document.getElementById("pay-tx-ref").value = "";
                 chargerCalendrierRecouvrement();
@@ -192,9 +227,7 @@
             } catch (error) { alert("❌ Erreur : " + error.message); }
         }
 
-        // 🔥 REMPLACEZ LA FONCTION DE FIN DANS FERMETURE DE AVEC CELLE-CI :
         function imprimerRecuTraite(nom, num, dateLim, montant, datePaye, ref) {
-            // Redirection propre vers la page dédiée avec les paramètres d'URL sécurisés
             const url = `/recu?nom=${encodeURIComponent(nom)}&num=${num}&montant=${montant}&date=${encodeURIComponent(datePaye)}&ref=${encodeURIComponent(ref)}`;
             window.open(url, '_blank');
         }
