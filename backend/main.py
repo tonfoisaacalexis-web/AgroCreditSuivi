@@ -6,11 +6,12 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-# Importation directe nettoyée
 from mdp import AGENCES_AUTORISEES
 import remboursement
+# Importation de votre nouveau module d'administration agronomique
+import academie_admin
 
-app = FastAPI(title="AgroCrédit Suivi - Édition Recouvrement")
+app = FastAPI(title="AgroCrédit Suivi - Édition Intégrale Holding")
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(CURRENT_DIR)
@@ -61,6 +62,8 @@ def initialiser_base_de_donnees():
     """)
     conn.commit()
     conn.close()
+    # Initialisation de la table des connaissances agricoles
+    academie_admin.initialiser_base_academie(DB_PATH)
 
 initialiser_base_de_donnees()
 
@@ -103,15 +106,15 @@ def lire_espace_banque():
     with open(os.path.join(FRONTEND_DIR, "admin.html"), "r", encoding="utf-8") as f:
         return f.read()
 
-# 🔥 RENDRE LA ROUTE DU SERVEUR COMPATIBLE AVEC VOTRE NOUVEAU FICHIER ECHEANCE.HTML
 @app.get("/recouvrement", response_class=HTMLResponse)
 def lire_espace_remboursement():
     with open(os.path.join(FRONTEND_DIR, "echeance.html"), "r", encoding="utf-8") as f:
         return f.read()
-        # 🔥 AJOUTEZ CETTE ROUTE TRÈS COURTE DANS VOTRE MAIN.PY :
-@app.get("/recu", response_class=HTMLResponse)
-def lire_page_recu():
-    with open(os.path.join(FRONTEND_DIR, "recu.html"), "r", encoding="utf-8") as f:
+
+# 📝 NOUVELLE ROUTE SÉCURISÉE : Accès au portail de l'Agronome
+@app.get("/academie-admin", response_class=HTMLResponse)
+def lire_espace_admin_academie():
+    with open(os.path.join(FRONTEND_DIR, "academie_admin.html"), "r", encoding="utf-8") as f:
         return f.read()
 
 @app.post("/api/admin/login")
@@ -184,12 +187,19 @@ def obtenir_tous_les_clients(banque: str = "La Régionale", agence: str = "Ambam
 def API_obtenir_calendrier(client_id: str):
     return remboursement.charger_calendrier_recouvrement(client_id, DB_PATH)
 
-# 🔥 Ligne 121 nettoyée et sécurisée ici
 @app.post("/api/recouvrement/payer")
 def API_encaisser_traite(saisie: SaisieRemboursement):
     return remboursement.encaisser_traite_orange(saisie.client_id, int(saisie.num_echeance), int(saisie.amount), transaction_ref=saisie.transaction_ref, db_path=DB_PATH)
 
-# 🔥 REMPLACEZ TOUTE LA DERNIÈRE FONCTION DANS main.py PAR CELLE-CI :
+# 🌐 API ACADÉMIE : Chargement et publication des fiches techniques
+@app.get("/api/academie/cours")
+def API_recuperer_cours():
+    return academie_admin.lister_tous_les_cours(DB_PATH)
+
+@app.post("/api/academie/publier")
+def API_publier_cours(cours: academie_admin.NouveauCours):
+    return academie_admin.ajouter_nouveau_cours(cours, DB_PATH)
+
 @app.get("/api/admin/evaluation/{client_id}")
 def evaluer_projet_bancable(client_id: str):
     conn = sqlite3.connect(DB_PATH)
@@ -198,48 +208,21 @@ def evaluer_projet_bancable(client_id: str):
     cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
     row = cursor.fetchone()
     conn.close()
-    
     if not row:
         raise HTTPException(status_code=404, detail="Client introuvable.")
-        
-    # 🧮 CALCUL DYNAMIQUE ET PROPORTIONNEL DU CRÉDIT LEVIER REEL
+    
     total_brut = row["total_epargne"]
     nombre_tranches = int(total_brut // 20000)
     frais_formation = nombre_tranches * 5000
     epargne_nette = total_brut - frais_formation
+    credit_sollicite = int((epargne_nette / 0.15) * 0.85) if epargne_nette > 0 else 0
     
-    # Prise en compte du droit au crédit effectif selon le ratio prudentiel 15% / 85%
-    if epargne_nette > 0:
-        credit_sollicite = int((epargne_nette / 0.15) * 0.85)
-    else:
-        credit_sollicite = 0
-        
     duree_totale = 12
     mois_grace = 2
     mois_remboursement_effectif = duree_totale - mois_grace
     total_interets = int(credit_sollicite * 0.01 * duree_totale)
+    mensualite_globale = int((credit_sollicite + total_interets) / mois_remboursement_effectif) if credit_sollicite > 0 else 0
     
-    if credit_sollicite > 0:
-        mensualite_globale = int((credit_sollicite + total_interets) / mois_remboursement_effectif)
-    else:
-        mensualite_globale = 0
-        
-    # 🔥 MODIFIEZ EXCLUSIVEMENT LE BLOC DE RETOUR DE LA DERNIÈRE ROUTE DANS main.py :
     return {
-        "client_name": row["full_name"],
-        "speculation": row["filiere"],
-        "cycle_exploitation": "Selon cycle filière",
-        "apport_epargne_nette": epargne_nette,
-        "credit_sollicite_banque": credit_sollicite,
-        "garantie_type": row["garantie_type"],
-        "garantie_details": row["garantie_details"],
-        "statut_projet": "BANCABLE & SÉCURISÉ",
-        "duree_mois": duree_totale,
-        "differe_mois": mois_grace,
-        "mensualite": mensualite_globale,
-        "total_interets": total_interets,
-        "taux_annuel": "12%",
-        "banque_nom": row["banque_nom"],
-        "agence_nom": row["agence_nom"],
-        "localite": row["localite"]
+        "client_name": row["full_name"], "speculation": row["filiere"], "cycle_exploitation": "Selon cycle", "apport_epargne_nette": epargne_nette, "credit_sollicite_banque": credit_sollicite, "garantie_type": row["garantie_type"], "garantie_details": row["garantie_details"], "statut_projet": "BANCABLE & SÉCURISÉ", "duree_mois": duree_totale, "differe_mois": mois_grace, "mensualite": mensualite_globale, "total_interets": total_interets, "taux_annuel": "12%", "banque_nom": row["banque_nom"], "agence_nom": row["agence_nom"], "localite": row["localite"]
     }
