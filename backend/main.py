@@ -189,6 +189,7 @@ def API_obtenir_calendrier(client_id: str):
 def API_encaisser_traite(saisie: SaisieRemboursement):
     return remboursement.encaisser_traite_orange(saisie.client_id, int(saisie.num_echeance), int(saisie.amount), transaction_ref=saisie.transaction_ref, db_path=DB_PATH)
 
+# 🔥 REMPLACEZ TOUTE LA DERNIÈRE FONCTION DANS main.py PAR CELLE-CI :
 @app.get("/api/admin/evaluation/{client_id}")
 def evaluer_projet_bancable(client_id: str):
     conn = sqlite3.connect(DB_PATH)
@@ -197,11 +198,51 @@ def evaluer_projet_bancable(client_id: str):
     cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
     row = cursor.fetchone()
     conn.close()
+    
     if not row:
         raise HTTPException(status_code=404, detail="Client introuvable.")
-    credit_sollicite = 850000
-    total_interets = int(credit_sollicite * 0.01 * 12)
-    mensualite_globale = int((credit_sollicite + total_interets) / 10)
+        
+    # 🧮 CALCUL DYNAMIQUE ET PROPORTIONNEL DU CRÉDIT LEVIER REEL
+    total_brut = row["total_epargne"]
+    nombre_tranches = int(total_brut // 20000)
+    frais_formation = nombre_tranches * 5000
+    epargne_nette = total_brut - frais_formation
+    
+    # Prise en compte du droit au crédit effectif selon le ratio prudentiel 15% / 85%
+    if epargne_nette > 0:
+        credit_sollicite = int((epargne_nette / 0.15) * 0.85)
+    else:
+        credit_sollicite = 0
+        
+    duree_totale = 12
+    mois_grace = 2
+    mois_remboursement_effectif = duree_totale - mois_grace
+    total_interets = int(credit_sollicite * 0.01 * duree_totale)
+    
+    if credit_sollicite > 0:
+        mensualite_globale = int((credit_sollicite + total_interets) / mois_remboursement_effectif)
+    else:
+        mensualite_globale = 0
+        
     return {
-        "client_name": row["full_name"], "speculation": row["filiere"], "cycle_exploitation": "45 jours", "budget_total_projet": 1000000, "apport_epargne_nette": 150000, "credit_sollicite_banque": credit_sollicite, "chiffre_affaires_prev": 1400000, "charges_exploitation_prev": 350000, "benefice_net_prev": 50000, "garantie_type": row["garantie_type"], "garantie_details": row["garantie_details"], "statut_projet": "BANCABLE & SÉCURISÉ", "duree_mois": 12, "differe_mois": 2, "mensualite": mensualite_globale, "total_interets": total_interets, "taux_annuel": "12%", "banque_nom": row["banque_nom"], "agence_nom": row["agence_nom"], "localite": row["localite"]
+        "client_name": row["full_name"],
+        "speculation": row["filiere"],
+        "cycle_exploitation": "Selon filière",
+        "budget_total_projet": int(credit_sollicite + epargne_nette),
+        "apport_epargne_nette": epargne_nette,
+        "credit_sollicite_banque": credit_sollicite,  # 👈 DEVIENT PROPORTIONNEL ET DYNAMIQUE
+        "chiffre_affaires_prev": int(credit_sollicite * 1.4),
+        "charges_exploitation_prev": int(credit_sollicite * 0.35),
+        "benefice_net_prev": int(credit_sollicite * 0.05),
+        "garantie_type": row["garantie_type"],
+        "garantie_details": row["garantie_details"],
+        "statut_projet": "BANCABLE & SÉCURISÉ",
+        "duree_mois": duree_totale,
+        "differe_mois": mois_grace,
+        "mensualite": mensualite_globale,
+        "total_interets": total_interets,
+        "taux_annuel": "12%",
+        "banque_nom": row["banque_nom"],
+        "agence_nom": row["agence_nom"],
+        "localite": row["localite"]
     }

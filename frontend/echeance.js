@@ -17,9 +17,12 @@ async function chargerCalendrierRecouvrement() {
         
         document.getElementById("txt-client-name").innerText = data.client_name;
         document.getElementById("txt-client-filiere").innerText = data.filiere;
+        
+        // Liaison dynamique avec le vrai crédit accordé calculé par le serveur
         document.getElementById("lbl-credit-total").innerText = evalData.credit_sollicite_banque.toLocaleString('fr-FR') + " CFA";
         
         if (data.echeances.length > 0) {
+            // Lecture rigoureuse du premier mois (Index 0) et du dernier mois (Index 11)
             document.getElementById("lbl-date-debut").innerText = new Date(data.echeances[0].date_theorique).toLocaleDateString('fr-FR');
             document.getElementById("lbl-date-fin").innerText = new Date(data.echeances[data.echeances.length - 1].date_theorique).toLocaleDateString('fr-FR');
         }
