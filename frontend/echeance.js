@@ -47,25 +47,41 @@ async function chargerCalendrierRecouvrement() {
     } catch (error) { banner.style.display = "none"; tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #b91c1c; font-weight: bold;">❌ ${error.message}</td></tr>`; }
 }
 
+// 🔥 REMPLACEZ LA FONCTION validerPaiementTraite() DANS echeance.js PAR CELLE-CI :
 async function validerPaiementTraite() {
     const clientId = document.getElementById("search-client-id").value.trim();
     const numEcheance = document.getElementById("pay-num-echeance").value;
     const amount = document.getElementById("pay-amount").value.trim();
     const txRef = document.getElementById("pay-tx-ref").value.trim();
-    if (clientId === "" || amount === "" || txRef === "") { alert("⚠️ Remplissez tous les champs."); return; }
+    
+    if (clientId === "" || amount === "" || txRef === "") {
+        alert("⚠️ Veuillez remplir tous les champs.");
+        return;
+    }
+
+    // 🛡️ BARRIÈRE DE SÉCURITÉ : AJOUT DE L'OPTION ANNULER
+    const confirmation = confirm(`🏦 CONFIRMATION D'ENCAISSEMENT :\n\nVoulez-vous valider le paiement de la Traite du Mois ${numEcheance} pour un montant de ${parseInt(amount).toLocaleString('fr-FR')} CFA ?\n\nCliquez sur OK pour valider ou sur Annuler pour corriger.`);
+    
+    if (!confirmation) {
+        return; // Stoppe l'exécution immédiatement si l'utilisateur clique sur Annuler
+    }
+
     try {
         const response = await fetch("/api/recouvrement/payer", {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ client_id: clientId, num_echeance: parseInt(numEcheance), amount: parseInt(amount), transaction_ref: txRef })
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                client_id: clientId, num_echeance: parseInt(numEcheance), amount: parseInt(amount), transaction_ref: txRef
+            })
         });
-        if (!response.ok) { throw new Error("Échec d'enregistrement."); }
-        alert("✅ Échéance enregistrée !");
-        document.getElementById("pay-amount").value = ""; document.getElementById("pay-tx-ref").value = "";
-        chargerCalendrierRecouvrement();
-    } catch (error) { alert("❌ Erreur : " + error.message); }
-}
 
-function imprimerRecuTraite(nom, num, dateLim, montant, datePaye, ref) {
-    const url = `/recu?nom=${encodeURIComponent(nom)}&num=${num}&montant=${montant}&date=${encodeURIComponent(datePaye)}&ref=${encodeURIComponent(ref)}`;
-    window.open(url, '_blank');
+        const result = await response.json();
+        if (!response.ok) { throw new Error(result.detail || "Échec."); }
+
+        alert("✅ Échéance enregistrée !");
+        document.getElementById("pay-amount").value = "";
+        document.getElementById("pay-tx-ref").value = "";
+        chargerCalendrierRecouvrement();
+
+    } catch (error) { alert("❌ Erreur : " + error.message); }
 }

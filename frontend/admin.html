@@ -184,41 +184,44 @@
             }
         }
 
-        async function enregistrerAgriculteur() {
-            const nameInput = document.getElementById('reg-name');
-            const emailInput = document.getElementById('reg-email');
-            const filiereInput = document.getElementById('reg-filiere');
-            const garantieTypeInput = document.getElementById('reg-garantie-type');
-            const garantieDetailsInput = document.getElementById('reg-garantie-details');
-            const boutonSoumission = document.querySelector(".card .btn");
-            if (nameInput.value.trim() === "" || emailInput.value.trim() === "" || garantieDetailsInput.value.trim() === "") {
-                alert("⚠️ Remplissez tous les champs."); return;
-            }
-            try {
-                boutonSoumission.disabled = true;
-                 // 🔥 MODIFIEZ EXCLUSIVEMENT LA CLÉ EN AJOUTANT LE "E" :
+        // 🔥 REMPLACEZ LA FONCTION enregistrerAgriculteur() DANS admin.html PAR CELLE-CI :
+async function enregistrerAgriculteur() {
+    const nameInput = document.getElementById('reg-name');
+    const emailInput = document.getElementById('reg-email');
+    const filiereInput = document.getElementById('reg-filiere');
+    const garantieTypeInput = document.getElementById('reg-garantie-type');
+    const garantieDetailsInput = document.getElementById('reg-garantie-details');
+    const boutonSoumission = document.querySelector(".card .btn");
+    
+    if (nameInput.value.trim() === "" || emailInput.value.trim() === "" || garantieDetailsInput.value.trim() === "") {
+        alert("⚠️ Veuillez remplir tous les champs.");
+        return;
+    }
+
+    // 🛡️ BARRIÈRE DE SÉCURITÉ : AJOUT DE L'OPTION ANNULER
+    const confirmation = confirm(`👤 CONFIRMATION D'OUVERTURE DE DOSSIER :\n\nVoulez-vous inscrire le producteur ${nameInput.value.trim().toUpperCase()} pour la filière ${filiereInput.value} ?\n\nCliquez sur OK pour confirmer ou sur Annuler pour modifier.`);
+    
+    if (!confirmation) {
+        return; // Stoppe l'action si l'utilisateur clique sur Annuler
+    }
+
+    try {
+        boutonSoumission.disabled = true;
         const response = await fetch(serverUrl + "/api/register", {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                full_name: nameInput.value.trim(), 
-                email: emailInput.value.trim(), 
-                filiere: filiereInput.value, 
-                garantie_type: garantieTypeInput.value, 
-                garantie_details: garantieDetailsInput.value.trim(),
-                banque_nom: localStorage.getItem("cfg_banque") || "La Régionale", 
-                agence_nom: localStorage.getItem("cfg_agence") || "Ambam", 
-                localite: localStorage.getItem("cfg_localite") || "Ambam", 
-                arrondissement: localStorage.getItem("cfg_arrondissement") || "Ambam", 
-                departement: localStorage.getItem("cfg_departement") || "Vallée-du-Ntem", // 👈 CORRIGÉ ICI
-                region: localStorage.getItem("cfg_region") || "Sud"
+                full_name: nameInput.value.trim(), email: emailInput.value.trim(), filiere: filiereInput.value, garantie_type: garantieTypeInput.value, garantie_details: garantieDetailsInput.value.trim(),
+                banque_nom: localStorage.getItem("cfg_banque") || "La Régionale", agence_nom: localStorage.getItem("cfg_agence") || "Ambam", localite: localStorage.getItem("cfg_localite") || "Ambam", arrondissement: localStorage.getItem("cfg_arrondissement") || "Ambam", departement: localStorage.getItem("cfg_departement") || "Vallée-du-Ntem", region: localStorage.getItem("cfg_region") || "Sud"
             })
         });
-                if (response.ok) {
-                    alert("✅ Agriculteur inscrit !"); nameInput.value = ""; emailInput.value = ""; garantieDetailsInput.value = ""; chargerClients();
-                } else { alert("❌ Échec de l'inscription."); }
-            } catch (e) { alert("❌ Erreur de connexion."); } finally { boutonSoumission.disabled = false; }
-        }
+        if (response.ok) {
+            alert("✅ Agriculteur inscrit avec succès !"); 
+            nameInput.value = ""; emailInput.value = ""; garantieDetailsInput.value = ""; 
+            chargerClients();
+        } else { alert("❌ Échec de l'inscription."); }
+    } catch (e) { alert("❌ Erreur de connexion."); } finally { boutonSoumission.disabled = false; }
+}
 
         async function analyserProjet(clientId) {
             const contentBox = document.getElementById('evaluation-content');
