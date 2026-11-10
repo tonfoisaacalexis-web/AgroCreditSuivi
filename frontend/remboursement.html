@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroCrédit Suivi - Planification & Suivi des Échéances</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f1f5f9; color: #0f172a; margin: 0; padding: 0; }
+        nav { background-color: #0f172a; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        main { max-w: 1200px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 25px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; height: fit-content; }
+        input, select { width: 100%; padding: 10px; margin: 8px 0 15px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 13px; }
+        .btn { width: 100%; background-color: #2563eb; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .btn:hover { background-color: #1d4ed8; }
+        .btn-pay { background-color: #16a34a; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; }
+        .btn-pay:hover { background-color: #15803d; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background-color: #f8fafc; color: #64748b; font-weight: bold; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; text-transform: uppercase; }
+        .status-grace { background-color: #fef3c7; color: #d97706; }
+        .status-wait { background-color: #e2e8f0; color: #475569; }
+        .status-paid { background-color: #dcfce7; color: #15803d; }
+        .status-late { background-color: #fee2e2; color: #b91c1c; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div>
+            <h1 style="margin: 0; font-size: 18px;">🏦 AgroCrédit Suivi — Suivi des Échéances & Recouvrements</h1>
+            <small style="opacity: 0.8;">Calendrier Prudentiel COBAC Multi-Agences</small>
+        </div>
+        <a href="/admin" style="color: white; text-decoration: none; font-weight: bold; font-size: 13px; background-color: #334155; padding: 8px 12px; border-radius: 6px;">⬅️ Tableau de Bord</a>
+    </nav>
+
+    <main>
+        <!-- 📅 Échéancier mois par mois -->
+        <div class="card">
+            <h3 style="margin-top: 0; color: #1e293b; font-size: 16px;">📅 Calendrier Mensuel des Annuités</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="search-client-id" placeholder="Entrez l'ID de l'agriculteur (Ex: 1)" style="margin: 0;">
+                <button onclick="chargerCalendrierRecouvrement()" class="btn" style="width: auto; white-space: nowrap; padding: 0 20px;">🔍 Charger le Plan</button>
+            </div>
+            
+            <div style="background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: none;" id="client-info-banner">
+                👤 <strong>Agriculteur :</strong> <span id="txt-client-name">...</span> | 🚜 <strong>Spéculation :</strong> <span id="txt-client-filiere">...</span>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mois</th>
+                        <th>Date Limite</th>
+                        <th>Traite Attendue</th>
+                        <th>Montant Payé</th>
+                        <th>Date Dépôt</th>
+                        <th>Réf Orange Money</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody id="table-remboursements-body">
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #94a3b8; font-style: italic; padding: 20px 0;">Saisissez un ID d'agriculteur pour afficher son calendrier d'amortissement.</td>
+                    </tr>
+                </table>
+        </div>
+        <!-- 💸 Formulaire d'encaissement Orange Money -->
+        <div class="card">
+            <h3 style="margin-top: 0; color: #1e293b; font-size: 16px;">💸 Enregistrer une Traite Reçue</h3>
+            <p style="font-size: 12px; color: #64748b; margin-bottom: 20px;">Validez l'échéance d'un producteur après confirmation du transfert mobile.</p>
+            
+            <label style="font-size: 12px; font-weight: bold; color: #475569;">Numéro de la Traite / Échéance concernée</label>
+            <select id="pay-num-echeance">
+                <option value="1">Mois 1 (Période de grâce)</option>
+                <option value="2">Mois 2 (Période de grâce)</option>
+                <option value="3">Mois 3 (Traite Réelle)</option>
+                <option value="4">Mois 4</option>
+                <option value="5">Mois 5</option>
+                <option value="6">Mois 6</option>
+                <option value="7">Mois 7</option>
+                <option value="8">Mois 8</option>
+                <option value="9">Mois 9</option>
+                <option value="10">Mois 10</option>
+                <option value="11">Mois 11</option>
+                <option value="12">Mois 12</option>
+            </select>
+
+            <label style="font-size: 12px; font-weight: bold; color: #475569;">Montant versé (CFA)</label>
+            <input type="number" id="pay-amount" placeholder="Ex: 95200">
+
+            <label style="font-size: 12px; font-weight: bold; color: #475569;">ID de la Transaction Orange Money</label>
+            <input type="text" id="pay-tx-ref" placeholder="Ex: CO261110.0815.A4521" style="text-transform: uppercase;">
+
+            <button onclick="validerPaiementTraite()" class="btn" style="background-color: #16a34a;">💾 Enregistrer l'Encaissement Mobile</button>
+        </div>
+    </main>
+
+    <script>
+        // Charger le calendrier mois par mois depuis SQLite
+        async function chargerCalendrierRecouvrement() {
+            const clientId = document.getElementById("search-client-id").value.trim();
+            const tbody = document.getElementById("table-remboursements-body");
+            const banner = document.getElementById("client-info-banner");
+            
+            if (clientId === "") { alert("⚠️ Saisissez l'ID de l'agriculteur."); return; }
+
+            try {
+                const response = await fetch("/api/recouvrement/echéancier/" + clientId);
+                if (!response.ok) { throw new Error("Agriculteur introuvable ou calendrier non généré."); }
+                
+                const data = await response.json();
+                
+                // Afficher le bandeau d'informations
+                document.getElementById("txt-client-name").innerText = data.client_name;
+                document.getElementById("txt-client-filiere").innerText = data.filiere;
+                banner.style.display = "block";
+                
+                tbody.innerHTML = "";
+                
+                // Obtenir la date du jour pour détecter les impayés en temps réel
+                const dateDuJour = new Date();
+
+                data.echeances.forEach(ech => {
+                    let badgeClass = "status-wait";
+                    let statutAffiche = ech.statut;
+                    
+                    // Détection automatique des retards/impayés
+                    const dateLimite = new Date(ech.date_theorique);
+                    if (ech.statut === "En attente" && dateLimite < dateDuJour) {
+                        badgeClass = "status-late";
+                        statutAffiche = "Impayé / Retard";
+                    } else if (ech.statut === "Période de grâce") {
+                        badgeClass = "status-grace";
+                    } else if (ech.statut === "Payé") {
+                        badgeClass = "status-paid";
+                    }
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>Mois ${ech.num_echeance}</strong></td>
+                            <td>${new Date(ech.date_theorique).toLocaleDateString('fr-FR')}</td>
+                            <td style="font-weight:bold;">${ech.montant_theorique.toLocaleString('fr-FR')} CFA</td>
+                            <td style="color:#16a34a; font-weight:bold;">${ech.montant_paye > 0 ? ech.montant_paye.toLocaleString('fr-FR') + ' CFA' : '-'}</td>
+                            <td>${ech.date_paiement || '-'}</td>
+                            <td style="font-family:monospace; font-weight:bold;">${ech.transaction_ref || '-'}</td>
+                            <td><span class="status-badge ${badgeClass}">${statutAffiche}</span></td>
+                        </tr>
+                    `;
+                });
+            } catch (error) {
+                banner.style.display = "none";
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #b91c1c; font-weight: bold; padding: 20px 0;">❌ Erreur : ${error.message}</td></tr>`;
+            }
+        }
+
+        // Valider le paiement d'une traite par Orange Money
+        async function validerPaiementTraite() {
+            const clientId = document.getElementById("search-client-id").value.trim();
+            const numEcheance = document.getElementById("pay-num-echeance").value;
+            const amount = document.getElementById("pay-amount").value.trim();
+            const txRef = document.getElementById("pay-tx-ref").value.trim();
+
+            if (clientId === "" || amount === "" || txRef === "") {
+                alert("⚠️ Veuillez remplir toutes les informations d'encaissement.");
+                return;
+            }
+
+            try {
+                const response = await fetch("/api/recouvrement/payer", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        client_id: clientId,
+                        num_echeance: parseInt(numEcheance),
+                        amount: parseInt(amount),
+                        transaction_ref: txRef
+                    })
+                });
+
+                const result = await response.json();
+                if (!response.ok) { throw new Error(result.detail || "Échec de validation de la traite."); }
+
+                alert("✅ Échéance validée ! La traite a été enregistrée avec succès sous la référence " + txRef.toUpperCase());
+                document.getElementById("pay-amount").value = "";
+                document.getElementById("pay-tx-ref").value = "";
+                chargerCalendrierRecouvrement(); // Actualiser le tableau mois par mois
+
+            } catch (error) {
+                alert("❌ Erreur : " + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
