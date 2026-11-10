@@ -20,16 +20,16 @@ def charger_calendrier_recouvrement(client_id: str, db_path: str):
     ech_existants = cursor.fetchall()
     
     if len(ech_existants) == 0:
-        # 🧮 CALCULS FINANCIERS PROPORTIONNELS EN DIRECT
+        # 🧮 CALCULS FINANCIERS PROPORTIONNELS EN PURE PYTHON (CORRIGÉ)
         total_brut = client["total_epargne"]
-        nombre_tranches = Math.floor(total_brut / 20000) if hasattr(client, 'total_epargne') else int(total_brut // 20000)
+        nombre_tranches = int(total_brut // 20000)
         
         # Déduction automatique des frais d'encadrement terrain (5 000 CFA par mois)
         frais_formation = nombre_tranches * 5000
         epargne_nette = total_brut - frais_formation
         
         # Droit au Crédit Effectif Alloué (Ratio Prudentiel : 15% Apport / 85% Levier)
-        if epargneNette > 0:
+        if epargne_nette > 0:
             credit_effectif = int((epargne_nette / 0.15) * 0.85)
         else:
             credit_effectif = 0
@@ -83,7 +83,7 @@ def charger_calendrier_recouvrement(client_id: str, db_path: str):
     conn.close()
     return {"client_name": client["full_name"], "filiere": client["filiere"], "echeances": liste_echeances}
 
-# 💸 ENCAISSEMENT D'UNE TRAITE PAR TRANSFERT ORANGE MONEY (Inchangé)
+# 💸 ENCAISSEMENT D'UNE TRAITE PAR TRANSFERT ORANGE MONEY
 def encaisser_traite_orange(client_id: str, num_echeance: int, amount: int, transaction_ref: str, db_path: str):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
