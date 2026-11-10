@@ -6,8 +6,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+# Importation directe nettoyée
 from mdp import AGENCES_AUTORISEES
-# Importation de votre nouveau fichier de gestion des annuités
 import remboursement
 
 app = FastAPI(title="AgroCrédit Suivi - Édition Recouvrement")
@@ -148,7 +148,7 @@ def enregistrer_epargne(depot: DépôtOrangeMoney):
     if not row:
         conn.close()
         raise HTTPException(status_code=404, detail="Agriculteur introuvable.")
-    nouveau_solde = row + int(depot.amount)
+    nouveau_solde = row[0] + int(depot.amount)
     try:
         cursor.execute("INSERT INTO transactions (user_id, amount, transaction_ref) VALUES (?, ?, ?)", (depot.user_id, int(depot.amount), depot.transaction_ref.upper()))
         cursor.execute("UPDATE clients SET total_epargne = ? WHERE id = ?", (nouveau_solde, depot.user_id))
@@ -174,15 +174,14 @@ def obtenir_tous_les_clients(banque: str = "La Régionale", agence: str = "Ambam
     conn.close()
     return {"clients": comptes}
 
-# 📅 AIGUILLAGE DU MODULE DE CALENDRIER SÉPARÉ
 @app.get("/api/recouvrement/echéancier/{client_id}")
 def API_obtenir_calendrier(client_id: str):
     return remboursement.charger_calendrier_recouvrement(client_id, DB_PATH)
 
-# 💸 AIGUILLAGE DE L'ENCAISSEMENT SEPARÉ
+# 🔥 Ligne 121 nettoyée et sécurisée ici
 @app.post("/api/recouvrement/payer")
 def API_encaisser_traite(saisie: SaisieRemboursement):
-    return remboursement.encaisser_traite_orange(saisie.client_id, int(saisie.num_echeance), int(saisie.amount),安全_transaction_ref=saisie.transaction_ref, db_path=DB_PATH)
+    return remboursement.encaisser_traite_orange(saisie.client_id, int(saisie.num_echeance), int(saisie.amount), transaction_ref=saisie.transaction_ref, db_path=DB_PATH)
 
 @app.get("/api/admin/evaluation/{client_id}")
 def evaluer_projet_bancable(client_id: str):
