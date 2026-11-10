@@ -1,13 +1,25 @@
-/* 🖨️ MOTEUR D'IMPRESSION COMPTABLE PORTEFEUILLE GLOBAL */
+/* 🖨️ FEUILLE DE STYLE DE REPORTING OFFICIEL — SÉCURISÉE CONTRE LES DOUBLONS */
+
 body { 
     background-color: white !important; 
     color: black !important; 
-    padding: 0 !important; 
+    font-family: sans-serif !important;
+    padding: 20px !important; 
     margin: 0 !important; 
 }
 
-nav, #auth-container, .card:nth-child(1), .btn-refresh, .btn-eval, button, a { 
-    display: none !important; /* Masque tous les éléments interactifs et formulaires */
+/* ❌ MASQUAGE ABSOLU DES MODULES INTERACTIFS ET FORMULAIRES */
+nav, 
+#auth-container, 
+main > div:nth-child(1), 
+main > div:nth-child(3),
+.btn-refresh, 
+.btn-eval, 
+button, 
+a,
+th:nth-child(7),
+td:nth-child(7) { 
+    display: none !important; 
 }
 
 main { 
@@ -24,10 +36,18 @@ main {
     width: 100% !important;
 }
 
+h3 {
+    font-size: 16px !important;
+    color: black !important;
+    margin-top: 20px !important;
+    border-bottom: 2px solid #0f172a !important;
+    padding-bottom: 5px !important;
+}
+
 table { 
     width: 100% !important; 
-    border: 1px solid #cbd5e1 !important; 
     border-collapse: collapse !important;
+    margin-top: 15px !important;
     page-break-inside: auto;
 }
 
@@ -38,24 +58,28 @@ tr {
 
 th { 
     background-color: #f1f5f9 !important; 
-    color: black !important; 
-    border-bottom: 2px solid #000 !important; 
+    color: #0f172a !important; 
+    border-bottom: 2px solid #0f172a !important; 
     padding: 10px !important;
+    font-size: 12px !important;
+    text-transform: uppercase !important;
 }
 
 td { 
     border-bottom: 1px solid #cbd5e1 !important; 
     padding: 10px !important;
+    font-size: 11px !important;
 }
 
-/* En-tête de rapport officiel imprimé */
-.card::before {
-    content: "📋 RAPPORT DE SITUATION FINANCIÈRE — PORTEFEUILLE D'AGENCE\nMONTANT TOTAL ACCORDÉ & SUIVI DES RISQUES — AGROCRÉDIT SUIVI\nDocument certifié conforme par le système comptable de l'agence\n------------------------------------------------------------------";
+/* 📋 EN-TÊTE UNIQUE DE RAPPORT COMPTABLE NATIONAL */
+main::before {
+    content: "📋 RAPPORT DE SITUATION FINANCIÈRE — PORTEFEUILLE DE CRÉDITS\nAGENCE D'AMBAM — VALLEÉ-DU-NTEM (SUD)\nDocument certifié conforme par l'infrastructure comptable AgroCrédit Suivi\n----------------------------------------------------------------------------------";
     white-space: pre-wrap;
     font-family: monospace;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: bold;
     display: block;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
     text-align: center;
+    line-height: 1.5;
 }
