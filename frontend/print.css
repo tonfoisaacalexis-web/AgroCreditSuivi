@@ -1,0 +1,61 @@
+/* 🖨️ MOTEUR D'IMPRESSION COMPTABLE PORTEFEUILLE GLOBAL */
+body { 
+    background-color: white !important; 
+    color: black !important; 
+    padding: 0 !important; 
+    margin: 0 !important; 
+}
+
+nav, #auth-container, .card:nth-child(1), .btn-refresh, .btn-eval, button, a { 
+    display: none !important; /* Masque tous les éléments interactifs et formulaires */
+}
+
+main { 
+    display: block !important; 
+    max-width: 100% !important; 
+    margin: 0 !important; 
+    padding: 0 !important; 
+}
+
+.card { 
+    border: none !important; 
+    box-shadow: none !important; 
+    padding: 0 !important; 
+    width: 100% !important;
+}
+
+table { 
+    width: 100% !important; 
+    border: 1px solid #cbd5e1 !important; 
+    border-collapse: collapse !important;
+    page-break-inside: auto;
+}
+
+tr { 
+    page-break-inside: avoid; 
+    page-break-after: auto; 
+}
+
+th { 
+    background-color: #f1f5f9 !important; 
+    color: black !important; 
+    border-bottom: 2px solid #000 !important; 
+    padding: 10px !important;
+}
+
+td { 
+    border-bottom: 1px solid #cbd5e1 !important; 
+    padding: 10px !important;
+}
+
+/* En-tête de rapport officiel imprimé */
+.card::before {
+    content: "📋 RAPPORT DE SITUATION FINANCIÈRE — PORTEFEUILLE D'AGENCE\nMONTANT TOTAL ACCORDÉ & SUIVI DES RISQUES — AGROCRÉDIT SUIVI\nDocument certifié conforme par le système comptable de l'agence\n------------------------------------------------------------------";
+    white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 14px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 30px;
+    text-align: center;
+}

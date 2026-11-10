@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgroCrédit Suivi - Portail Banque Universel</title>
+    <!-- 🔥 REMPLACEZ TOUT VOTRE BLOC DE STYLE PAR CETTE VERSION NETTOYÉE ET COUPLÉE : -->
     <style>
         body { font-family: sans-serif; background-color: #f1f5f9; color: #0f172a; margin: 0; padding: 0; }
         nav { background-color: #1e293b; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
@@ -21,13 +22,10 @@
         .badge-frais { background-color: #fee2e2; color: #991b1b; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
         #auth-container { max-width: 400px; margin: 100px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; text-align: center; }
         #protected-content { display: none; }
-        @media print {
-            body { background-color: white; }
-            nav, .btn-refresh, main > div:nth-child(1), main > div:nth-child(2), button { display: none !important; }
-            main { display: block; margin: 0; padding: 0; }
-            .card { border: none; box-shadow: none; padding: 0; }
-        }
     </style>
+
+    <!-- 🖨️ LIAISON DIRECTE ET PROPRE AVEC VOTRE FICHIER D'IMPRESSION EXTERNE -->
+    <link rel="stylesheet" href="/static/print.css" media="print">
     <script>
         const serverUrl = "";
 
