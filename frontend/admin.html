@@ -135,7 +135,7 @@
                             <th>Nom du Producteur</th>
                             <th>Spéculation</th>
                             <th>Total Épargné</th>
-                            <th>Frais Déduits</th>
+                            <th>Vulgarisation & Télé-Conseil (25%)</th>
                             <th>Crédit Levier</th>
                             <th>Analyse</th>
                         </tr>
@@ -158,29 +158,32 @@
         </main>
     </div>
     <script>
-        async function chargerClients() {
-            const tbody = document.getElementById('table-clients-body');
-            const banque = localStorage.getItem("cfg_banque") || "La Régionale";
-            const agence = localStorage.getItem("cfg_agence") || "Ambam";
-            try {
-                const response = await fetch(serverUrl + "/api/admin/clients?banque=" + encodeURIComponent(banque) + "&agence=" + encodeURIComponent(agence));
-                const data = await response.json();
-                if (data.clients && data.clients.length > 0) {
-                    tbody.innerHTML = "";
-                    data.clients.forEach(client => {
-                        const nombreDeMois = Math.floor(client.total_epargne / 20000);
-                        const fraisFormation = nombreDeMois * 5000;
-                        const epargneNette = client.total_epargne - fraisFormation;
-                        const droitCredit = epargneNette > 0 ? Math.floor((epargneNette / 0.15) * 0.85) : 0;
-                        tbody.innerHTML += "<tr><td>#0" + client.id + "</td><td><strong>" + client.full_name + "</strong><br><small>" + client.email + "</small></td><td>" + client.filiere + "</td><td>" + client.total_epargne.toLocaleString('fr-FR') + " CFA</td><td><span class='badge-frais'>-" + fraisFormation.toLocaleString('fr-FR') + " CFA</span></td><td style='font-weight:bold;color:#166534;background-color:#f0fdf4;'>" + droitCredit.toLocaleString('fr-FR') + " CFA</td><td><button onclick='analyserProjet(\"" + client.id + "\")' class='btn-eval'>📊 Évaluer</button></td></tr>";
-                    });
-                } else {
-                    tbody.innerHTML = "<tr><td colspan='7' style='text-align: center; color: #94a3b8; padding:20px 0;'>Aucun agriculteur enregistré pour l'agence de " + agence + ".</td></tr>";
-                }
-            } catch (error) {
-                tbody.innerHTML = "<tr><td colspan='7' style='text-align: center; color: #b91c1c; padding:20px 0;'>⚠️ Erreur de liaison base de données.</td></tr>";
-            }
+       // 🔥 REMPLACEZ LA FONCTION chargerClients() DANS admin.html PAR CELLE-CI :
+async function chargerClients() {
+    const tbody = document.getElementById('table-clients-body');
+    const banque = localStorage.getItem("cfg_banque") || "La Régionale";
+    const agence = localStorage.getItem("cfg_agence") || "Ambam";
+    try {
+        const response = await fetch(serverUrl + "/api/admin/clients?banque=" + encodeURIComponent(banque) + "&agence=" + encodeURIComponent(agence));
+        const data = await response.json();
+        if (data.clients && data.clients.length > 0) {
+            tbody.innerHTML = "";
+            data.clients.forEach(client => {
+                // Calcul proportionnel basé sur la vulgarisation numérique (5 000 CFA / tranche de 20 000 CFA)
+                const nombreDeMois = Math.floor(client.total_epargne / 20000);
+                const fraisTeleConseil = nombreDeMois * 5000; 
+                const epargneNette = client.total_epargne - fraisTeleConseil;
+                const droitCredit = epargneNette > 0 ? Math.floor((epargneNette / 0.15) * 0.85) : 0;
+                
+                tbody.innerHTML += "<tr><td>#0" + client.id + "</td><td><strong>" + client.full_name + "</strong><br><small>" + client.email + "</small></td><td>" + client.filiere + "</td><td>" + client.total_epargne.toLocaleString('fr-FR') + " CFA</td><td><span class='badge-frais'>-" + fraisTeleConseil.toLocaleString('fr-FR') + " CFA</span></td><td style='font-weight:bold;color:#166534;background-color:#f0fdf4;'>" + droitCredit.toLocaleString('fr-FR') + " CFA</td><td><button onclick='analyserProjet(\"" + client.id + "\")' class='btn-eval'>📊 Évaluer</button></td></tr>";
+            });
+        } else {
+            tbody.innerHTML = "<tr><td colspan='7' style='text-align: center; color: #94a3b8; padding:20px 0;'>Aucun agriculteur enregistré pour l'agence de " + agence + ".</td></tr>";
         }
+    } catch (error) {
+        tbody.innerHTML = "<tr><td colspan='7' style='text-align: center; color: #b91c1c; padding:20px 0;'>⚠️ Erreur de liaison base de données.</td></tr>";
+    }
+}
 
         // 🔥 REMPLACEZ LA FONCTION enregistrerAgriculteur() DANS admin.html PAR CELLE-CI :
 async function enregistrerAgriculteur() {
