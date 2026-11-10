@@ -83,34 +83,60 @@
         </div>
     </main>
 
+    <!-- 🔥 REMPLACEZ TOUT LE BLOC SCRIPT DE FIN DANS academie.html PAR CELUI-CI : -->
     <script>
-        const fichesContenu = {
-            poulet: "🌡️ GUIDE THERMIQUE - POULET DE CHAIR (VALLÉE-DU-NTEM)\n\nEn saison des pluies à Ambam, l'humidité relative augmente les risques de maladies respiratoires chez les poussins. \n\n1. Préparation : Préchauffez le bâtiment 24 heures avant l'arrivée des poussins.\n2. Température : Maintenez 35°C en Semaine 1, puis descendez de 2°C chaque semaine.\n3. Source : Utilisez des lampes radiantes ou des radiants à gaz.",
-            peste: "🐖 PROTOCOLE DE BIOSÉCURITÉ - ÉLEVAGE PORCIN\n\nLa peste porcine africaine est virulente dans la région du Sud. Aucun traitement n'existe.\n\n1. Clôture : Interdiction totale d'accès aux personnes étrangères à l'exploitation.\n2. Pédiluve : Installez un bac de désinfection contenant de la chaux vive à l'entrée de chaque loge.\n3. Alimentation : Ne distribuez jamais de restes de repas non cuits.",
-            pisciculture: "🐟 PISCICULTURE - SUIVI DES ÉTANGS\n\n1. Oxygénation : Observez les poissons à l'aube. S'ils pipent l'air en surface, l'eau manque d'oxygène.\n2. Renouvellement : Changez 10% du volume d'eau tous les 15 jours.\n3. Fertilisation : Utilisez de la fiente de poule sèche pour stimuler le phytoplancton.",
-            mais: "🌽 MAÏS - OPTIMISATION DES INTRANTS\n\n1. Semis : Écartement strict de 75 cm entre les lignes et 25 cm entre les poquets.\n2. Fertilisation : Apport de NPK (20-10-10) au 14ème jour après la levée.\n3. Sarclage : Premier nettoyage impératif avant le premier apport d'engrais."
-        };
+        // Dictionnaire local de secours si le serveur est indisponible
+        let fichesContenuDynamiques = {};
 
-        function ouvrirFiche(cle) {
-            document.getElementById("viewer-title").innerText = document.querySelector(`[onclick="ouvrirFiche('${cle}')"] h4`).innerText;
-            document.getElementById("viewer-content").innerText = fichesContenu[cle];
-            document.getElementById("fiche-viewer").style.display = "block";
-            window.scrollTo({ top: document.getElementById("fiche-viewer").offsetTop, behavior: 'smooth' });
+        // 🔄 FONCTION MAJEURE : Charger les cours en direct depuis la base SQLite
+        async function synchroniserCoursDepuisServeur() {
+            const grid = document.querySelector(".grid-fiches");
+            try {
+                const response = await fetch("/api/academie/cours");
+                if (!response.ok) throw new Error("Erreur de récupération.");
+                
+                const data = await response.json();
+                fichesContenuDynamiques = data; // Stockage en mémoire
+                
+                const cles = Object.keys(data);
+                if (cles.length > 0) {
+                    grid.innerHTML = ""; // Vider l'ancien affichage statique
+                    cles.forEach(cle => {
+                        grid.innerHTML += `
+                            <div class="fiche-box" onclick="ouvrirFiche('${cle}')">
+                                <h4 style="margin:0 0 5px 0; color: #15803d;">${data[cle].titre}</h4>
+                                <p style="font-size:12px; color:#64748b; margin:0;">${data[cle].description}</p>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.log("⚠️ Mode hors-ligne ou erreur de synchronisation :", error.message);
+            }
         }
 
+        // Afficher le contenu détaillé de la fiche sélectionnée
+        function ouvrirFiche(cle) {
+            if (fichesContenuDynamiques[cle]) {
+                document.getElementById("viewer-title").innerText = fichesContenuDynamiques[cle].titre;
+                document.getElementById("viewer-content").innerText = fichesContenuDynamiques[cle].contenu;
+                document.getElementById("fiche-viewer").style.display = "block";
+                window.scrollTo({ top: document.getElementById("fiche-viewer").offsetTop, behavior: 'smooth' });
+            } else {
+                alert("⚠️ Contenu de la fiche indisponible.");
+            }
+        }
+
+        // Assistance par messagerie instantanée (Inchangée)
         function envoyerQuestion() {
             const txtInput = document.getElementById("client-question");
             const container = document.getElementById("chat-messages");
             if(txtInput.value.trim() === "") return;
 
-            // 1. Ajouter le message du client
             container.innerHTML += `<div class="msg msg-client"><strong>Vous :</strong> ${txtInput.value.trim()}</div>`;
-            
-            const question = txtInput.value.trim();
             txtInput.value = "";
             container.scrollTop = container.scrollHeight;
 
-            // 2. Simulation d'une réponse automatique instantanée de l'expert agronome centralisé
             setTimeout(() => {
                 container.innerHTML += `
                     <div class="msg msg-expert">
@@ -119,6 +145,11 @@
                 container.scrollTop = container.scrollHeight;
             }, 1500);
         }
+
+        // 🚀 Lancement automatique de la synchronisation au chargement de la page
+        window.onload = function() {
+            synchroniserCoursDepuisServeur();
+        };
     </script>
 </body>
 </html>
