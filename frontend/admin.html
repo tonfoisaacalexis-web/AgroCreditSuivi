@@ -221,15 +221,39 @@ async function enregistrerAgriculteur() {
     } catch (e) { alert("❌ Erreur de connexion."); } finally { boutonSoumission.disabled = false; }
 }
 
-        async function analyserProjet(clientId) {
-            const contentBox = document.getElementById('evaluation-content');
-            contentBox.innerHTML = "<p>Calcul de l'échéancier...</p>";
-            try {
-                const response = await fetch(serverUrl + "/api/admin/evaluation/" + clientId);
-                const data = await response.json();
-                contentBox.innerHTML = "<div style='background:white;padding:15px;border-radius:8px;border:1px solid #e2e8f0;border-top:4px solid #2563eb;line-height:1.6;'><h4 style='margin:0 0 10px 0;text-transform:uppercase;'>📊 DOSSIER BANCABLE — " + data.banque_nom + "</h4><p style='font-size:11px;color:#64748b;'>Agence de " + data.agence_nom + "</p><hr style='border:0;border-top:1px solid #e2e8f0;margin:8px 0;'><p><strong>Nom :</strong> " + data.client_name + "</p><p><strong>Spéculation :</strong> " + data.speculation + "</p><hr style='border:0;border-top:1px solid #e2e8f0;margin:8px 0;'><p><strong>Garantie :</strong> " + data.garantie_type + "</p><p style='font-size:11px;background:#f8fafc;padding:6px;border-radius:4px;'>📝 " + data.garantie_details + "</p><hr style='border:0;border-top:1px solid #e2e8f0;margin:8px 0;'><p>Financement : Épargne Nette (15%) : <strong>150 000 CFA</strong> | Crédit Sollicité (85%) : <strong style='color:#166534;'>" + data.credit_sollicite_banque.toLocaleString() + " CFA</strong></p><hr style='border:0;border-top:1px solid #e2e8f0;margin:8px 0;'><p style='font-weight:bold;color:#2563eb;'>📅 ÉCHÉANCIER RECALCULÉ :</p><div style='background:#f0fdf4;padding:10px;border-radius:6px;border:1px solid #bbf7d0;font-size:11px;'><p>Durée : <strong>12 mois</strong></p><p style='color:#c2410c;font-weight:bold;'>⚠️ Période de grâce : Mois 1 & Mois 2 (0 CFA)</p><p style='font-size:12px;color:#166534;font-weight:bold;'>👉 Traite (Mois 3 à 12) : " + data.mensualite.toLocaleString('fr-FR') + " CFA / mois</p><p style='color:#64748b;font-size:10px;'>Intérêts COBAC : " + data.total_interets.toLocaleString() + " CFA</p></div><hr style='border:0;border-top:1px solid #e2e8f0;margin:8px 0;'><p>Chiffre d'Affaires prévisionnel : <strong>" + data.chiffre_affaires_prev.toLocaleString() + " CFA</strong></p><p>Bénéfice Net Campagne : <strong style='color:#2563eb;'>+" + data.benefice_net_prev.toLocaleString() + " CFA</strong></p><div style='margin-top:15px;background:#dcfce7;color:#15803d;padding:8px;text-align:center;font-weight:bold;border-radius:6px;font-size:11px;'>🎯 EVALUATION : " + data.statut_projet + "</div></div>";
-            } catch (error) { contentBox.innerHTML = "<p>⚠️ Échec du calcul.</p>"; }
-        }
+        // 🔥 REMPLACEZ LE BLOC INTERNE DE LA FONCTION analyserProjet DANS admin.html PAR CELUI-CI :
+async function analyserProjet(clientId) {
+    const contentBox = document.getElementById('evaluation-content');
+    contentBox.innerHTML = "<p>Calcul de l'échéancier...</p>";
+    try {
+        const response = await fetch(serverUrl + "/api/admin/evaluation/" + clientId);
+        const data = await response.json();
+        
+        contentBox.innerHTML = `
+            <div style='background:white;padding:15px;border-radius:8px;border:1px solid #e2e8f0;border-top:4px solid #2563eb;line-height:1.6;'>
+                <h4 style='margin:0 0 10px 0;text-transform:uppercase;'>📊 DOSSIER BANCABLE — ${data.banque_nom}</h4>
+                <p style='font-size:11px;color:#64748b;'>Agence de ${data.agence_nom}</p>
+                <hr style='border:0;border-top:1px solid #e2e8f0;margin:8px 0;'>
+                <p><strong>Nom du Producteur :</strong> ${data.client_name}</p>
+                <p><strong>Spéculation :</strong> ${data.speculation}</p>
+                <hr style='border:0;border-top:1px solid #e2e8f0;margin:8px 0;'>
+                <p><strong>Garantie :</strong> ${data.garantie_type}</p>
+                <p style='font-size:11px;background:#f8fafc;padding:6px;border-radius:4px;'>📝 ${data.garantie_details}</p>
+                <hr style='border:0;border-top:1px solid #e2e8f0;margin:8px 0;'>
+                <p><strong>Épargne Nette Bloquée (15%) :</strong> ${data.apport_epargne_nette.toLocaleString('fr-FR')} CFA</p>
+                <p><strong>Crédit Levier Alloué (85%) :</strong> <strong style='color:#166534;'>${data.credit_sollicite_banque.toLocaleString('fr-FR')} CFA</strong></p>
+                <hr style='border:0;border-top:1px solid #e2e8f0;margin:8px 0;'>
+                <p style='font-weight:bold;color:#2563eb;'>📅 PLAN DE REMBOURSEMENT COBAC :</p>
+                <div style='background:#f0fdf4;padding:10px;border-radius:6px;border:1px solid #bbf7d0;font-size:11px;'>
+                    <p>Durée du Contrat : <strong>${data.duree_mois} mois</strong></p>
+                    <p style='color:#c2410c;font-weight:bold;'>⚠️ Différé Biologique : Mois 1 & Mois 2 (0 CFA)</p>
+                    <p style='font-size:12px;color:#166534;font-weight:bold;'>👉 Traite Mensuelle (Mois 3 à 12) : ${data.mensualite.toLocaleString('fr-FR')} CFA / mois</p>
+                    <p style='color:#64748b;font-size:10px;'>Coût Total des Intérêts (${data.taux_annuel}) : ${data.total_interets.toLocaleString('fr-FR')} CFA</p>
+                </div>
+                <div style='margin-top:15px;background:#dcfce7;color:#15803d;padding:8px;text-align:center;font-weight:bold;border-radius:6px;font-size:11px;'>🎯 NOTE GLOBALE : ${data.statut_projet}</div>
+            </div>`;
+    } catch (error) { contentBox.innerHTML = "<p>⚠️ Échec du calcul de l'échéancier.</p>"; }
+}
 
         function exporterVersExcel() {
             const table = document.querySelector("table");

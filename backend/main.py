@@ -224,16 +224,13 @@ def evaluer_projet_bancable(client_id: str):
     else:
         mensualite_globale = 0
         
+    # 🔥 MODIFIEZ EXCLUSIVEMENT LE BLOC DE RETOUR DE LA DERNIÈRE ROUTE DANS main.py :
     return {
         "client_name": row["full_name"],
         "speculation": row["filiere"],
-        "cycle_exploitation": "Selon filière",
-        "budget_total_projet": int(credit_sollicite + epargne_nette),
+        "cycle_exploitation": "Selon cycle filière",
         "apport_epargne_nette": epargne_nette,
-        "credit_sollicite_banque": credit_sollicite,  # 👈 DEVIENT PROPORTIONNEL ET DYNAMIQUE
-        "chiffre_affaires_prev": int(credit_sollicite * 1.4),
-        "charges_exploitation_prev": int(credit_sollicite * 0.35),
-        "benefice_net_prev": int(credit_sollicite * 0.05),
+        "credit_sollicite_banque": credit_sollicite,
         "garantie_type": row["garantie_type"],
         "garantie_details": row["garantie_details"],
         "statut_projet": "BANCABLE & SÉCURISÉ",
