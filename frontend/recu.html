@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Reçu de Paiement - AgroCrédit Suivi</title>
+    <style>
+        body { font-family: monospace; padding: 20px; max-width: 380px; margin: 0 auto; color: #333; line-height: 1.4; }
+        .header { text-align: center; border-bottom: 2px dashed #333; padding-bottom: 10px; margin-bottom: 15px; }
+        .total { font-size: 15px; font-weight: bold; text-align: center; border-top: 1px dashed #333; border-bottom: 1px dashed #333; padding: 8px 0; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2 id="print-banque">BANQUE</h2>
+        <h3 id="print-agence">AGENCE</h3>
+        <p><strong>AGROCRÉDIT SUIVI</strong><br>Système de Recouvrement</p>
+    </div>
+    <div>
+        <p><strong>Date d'émission :</strong> <span id="print-date">...</span></p>
+        <p><strong>Producteur :</strong> <span id="print-nom">...</span></p>
+        <p><strong>Échéance :</strong> Traite du Mois <span id="print-num">...</span></p>
+        <p><strong>Réf Transaction :</strong> <span id="print-ref">...</span></p>
+    </div>
+    <div class="total">
+        MONTANT PERÇU : <span id="print-montant">0</span> FCFA
+    </div>
+    <p style="text-align:center; font-size:11px; border-top:1px dashed #333; padding-top:10px;">Merci pour votre confiance agropastorale.</p>
+
+    <script>
+        // Récupération automatique des variables transmises dans l'URL
+        const params = new URLSearchParams(window.location.search);
+        document.getElementById("print-banque").innerText = localStorage.getItem("cfg_banque") || "La Régionale";
+        document.getElementById("print-agence").innerText = localStorage.getItem("cfg_agence") || "Ambam";
+        document.getElementById("print-nom").innerText = params.get("nom") || "";
+        document.getElementById("print-num").innerText = params.get("num") || "";
+        document.getElementById("print-montant").innerText = parseInt(params.get("montant")).toLocaleString('fr-FR');
+        document.getElementById("print-date").innerText = params.get("date") || "";
+        document.getElementById("print-ref").innerText = params.get("ref") || "";
+
+        // Déclenchement de l'impression physique instantanée
+        window.onload = function() {
+            window.print();
+        };
+    </script>
+</body>
+</html>

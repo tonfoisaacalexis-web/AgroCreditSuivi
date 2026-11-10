@@ -107,6 +107,11 @@ def lire_espace_banque():
 def lire_espace_remboursement():
     with open(os.path.join(FRONTEND_DIR, "remboursement.html"), "r", encoding="utf-8") as f:
         return f.read()
+        # 🔥 AJOUTEZ CETTE ROUTE TRÈS COURTE DANS VOTRE MAIN.PY :
+@app.get("/recu", response_class=HTMLResponse)
+def lire_page_recu():
+    with open(os.path.join(FRONTEND_DIR, "recu.html"), "r", encoding="utf-8") as f:
+        return f.read()
 
 @app.post("/api/admin/login")
 def verifier_code_agence(demande: DemandeConnexion):
