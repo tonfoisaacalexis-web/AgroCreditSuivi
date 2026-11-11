@@ -32,19 +32,17 @@
     <!-- 🌐 ZONE SÉCURISÉE DE GOUVERNANCE TECHNIQUE -->
     <div id="protected-agronome">
         <!-- 🔥 REMPLACEZ LA BALISE NAV DANS admin.html POUR FIXER LES ADRESSES UNIQUE : -->
+        <!-- 🏦 BARRE DE NAVIGATION BANQUE - SÉCURISÉE ET ENTIÈREMENT DISSOCIÉE DE L'ACADÉMIE -->
         <nav>
             <div>
                 <h1 style="margin: 0; font-size: 18px;">🏦 <span id="title-banque">...</span> — AgroCrédit Suivi</h1>
                 <small style="opacity: 0.8;" id="subtitle-agence">...</small>
             </div>
             <div style="display: flex; gap: 10px;">
-                <!-- 🌱 ACCÈS PORTAIL AGRONOME (ADMINISTRATEUR DES COURS) -->
-                <a href="/academie-admin" style="background-color: #15803d; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; text-decoration: none; display: flex; align-items: center;">🌱 Configuration Académie</a>
-
-                <!-- 📅 ACCÈS RECOUVREMENT DES TRAITES -->
+                <!-- 📅 ACCÈS UNIQUEMENT AU RECOUVREMENT DES TRAITES DE L'AGENCE -->
                 <a href="/recouvrement" style="background-color: #2563eb; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; text-decoration: none; display: flex; align-items: center;">📅 Suivi Remboursements</a>
                 
-                <!-- 📊 OPTIONS EXPORT ET IMPRESSION -->
+                <!-- 📊 REPORING ET IMPRESSION PORTEFEUILLE COMPTABLE -->
                 <button onclick="exporterVersExcel()" style="background-color: #10b981; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">📊 Exporter Excel</button>
                 <button onclick="window.print()" style="background-color: #475569; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">🖨️ Imprimer PDF</button>
                 <button onclick="chargerClients()" class="btn-refresh">🔄 Actualiser</button>
