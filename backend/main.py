@@ -133,6 +133,7 @@ def inscrire_client(client: ClientRegister):
         conn.close()
         raise HTTPException(status_code=400, detail="Agriculteur déjà enregistré.")
     date_actuelle = datetime.now().strftime("%Y-%m-%d")
+    # 🔥 MODIFIEZ UNIQUEMENT LA FIN DE LA ROUTE /api/register DANS main.py :
     try:
         cursor.execute("""
             INSERT INTO clients (full_name, email, filiere, total_epargne, garantie_type, garantie_details, banque_nom, agence_nom, localite, arrondissement, departement, region, date_octroi)
@@ -144,8 +145,19 @@ def inscrire_client(client: ClientRegister):
         conn.close()
         raise HTTPException(status_code=500, detail="Erreur SQLite.")
     conn.close()
-    return {"status": "success", "id": nouvel_id}
-
+    
+    # 🔌 INTERCONNEXION AVEC LE MOTEUR WHATSAPP DE L'ACADÉMIE
+    # Utilisation d'un numéro générique ou récupéré depuis l'adresse email/contact
+    telephone_format_international = "237690000000" 
+    acces_academie = remboursement.preparer_liaison_academie_client(nouvel_id, telephone_format_international, DB_PATH)
+    
+    return {
+        "status": "success",
+        "id": nouvel_id,
+        "academie_user": accis_academie["identifiant"] if acces_academie else None,
+        "academie_password": acces_academie["mot_de_passe"] if acces_academie else None,
+        "lien_whatsapp_envoi": acces_academie["lien_whatsapp"] if acces_academie else None
+    }
 @app.post("/api/save/orange")
 def enregistrer_epargne(depot: DépôtOrangeMoney):
     if depot.amount < 20000:

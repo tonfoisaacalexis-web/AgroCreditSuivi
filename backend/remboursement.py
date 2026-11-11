@@ -1,6 +1,9 @@
 import sqlite3
 from datetime import datetime
 from fastapi import HTTPException
+import secrets
+import string
+import urllib.parse
 
 # 📊 GÉNÉRATION DYNAMIQUE DU CALENDRIER MOIS PAR MOIS SUR LE CRÉDIT EFFECTIF
 def charger_calendrier_recouvrement(client_id: str, db_path: str):
@@ -100,3 +103,53 @@ def encaisser_traite_orange(client_id: str, num_echeance: int, amount: int, tran
         raise HTTPException(status_code=400, detail="Cette référence Orange Money a déjà été validée pour une autre traite.")
     conn.close()
     return {"status": "success"}
+
+    def generer_identifiants_academie(nom_complet):
+    """Génère l'identifiant unique et le mot de passe pour l'Académie WordPress"""
+    nom_propre = nom_complet.strip().lower().replace(" ", "")
+    identifiant_unique = f"agro.{nom_propre}"
+    
+    caracteres = string.ascii_letters + string.digits
+    mot_de_passe = ''.join(secrets.choice(caracteres) for _ in range(8))
+    return identifiant_unique, mot_de_passe
+
+def preparer_liaison_academie_client(client_id, telephone_client, db_path):
+    """Lit la BDD Banque pour extraire les données et générer le lien WhatsApp"""
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    # 🔍 Extraction des données du producteur inscrit
+    cursor.execute("SELECT full_name, filiere FROM clients WHERE id = ?", (client_id,))
+    client = cursor.fetchone()
+    conn.close()
+    
+    if not client:
+        return None
+        
+    nom = client["full_name"]
+    identifiant, mdp = generer_identifiants_academie(nom)
+    
+    # URL de votre site WordPress InfinityFree configuré ce matin
+    lien_wordpress = "https://infinityfreeapp.com"
+    
+    # 📝 Formatage du message officiel pour le terrain
+    texte_message = (
+        f"🌱 *BIENVENUE À L'ACADÉMIE AGROCRÉDIT SUIVI*\n\n"
+        f"Bonjour M./Mme {nom},\n"
+        f"Votre dossier d'accompagnement a été validé avec succès par l'agence !\n\n"
+        f"Voici vos accès personnels pour vous connecter à la plateforme de Vulgarisation et de Télé-Conseil :\n"
+        f"🌐 *Lien du site :* {lien_wordpress}\n"
+        f"👤 *Identifiant :* {identifiant}\n"
+        f"🔑 *Mot de passe :* {mdp}\n\n"
+        f"Consultez dès aujourd'hui vos fiches techniques pour sécuriser votre production. Bon succès !"
+    )
+    
+    texte_encode = urllib.parse.quote(texte_message)
+    lien_whatsapp_complet = f"https://whatsapp.com{telephone_client}&text={texte_encode}"
+    
+    return {
+        "identifiant": identifiant,
+        "mot_de_passe": mdp,
+        "lien_whatsapp": lien_whatsapp_complet
+    }
