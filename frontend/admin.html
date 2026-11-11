@@ -3,46 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gouvernance Académie - Portail Administrateur Agronome</title>
+    <title>AgroCrédit Suivi - Portail Banque Universel</title>
     <style>
-        body { font-family: sans-serif; background-color: #f0fdf4; color: #0f172a; margin: 0; padding: 0; }
-        nav { background-color: #166534; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        main { max-w: 1300px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1.5fr; gap: 25px; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #bbf7d0; height: fit-content; }
-        input, select, textarea { width: 100%; padding: 10px; margin: 8px 0 15px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 13px; }
-        .btn { width: 100%; background-color: #166534; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
-        .btn:hover { background-color: #14532d; }
+        body { font-family: sans-serif; background-color: #f1f5f9; color: #0f172a; margin: 0; padding: 0; }
+        nav { background-color: #1e293b; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        main { max-w: 1400px; margin: 20px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1.8fr 1.2fr; gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; height: fit-content; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
-        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { background-color: #f0fdf4; color: #166534; font-weight: bold; }
-        #auth-agronome { max-width: 400px; margin: 100px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #bbf7d0; text-align: center; }
-        #protected-agronome { display: none; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background-color: #f8fafc; color: #64748b; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; margin: 5px 0 12px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 12px; display: block; }
+        .btn { width: 100%; background-color: #2563eb; color: white; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn:hover { background-color: #1d4ed8; }
+        .btn-refresh { background-color: #475569; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; }
+        .btn-eval { background-color: #15803d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .badge { background-color: #dcfce7; color: #15803d; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .badge-frais { background-color: #fee2e2; color: #991b1b; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        #auth-container { max-width: 400px; margin: 100px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; text-align: center; }
+        #protected-content { display: none; }
     </style>
+    <link rel="stylesheet" href="/static/print.css" media="print">
+    <script>
+        const serverUrl = "";
+
+        async function validerCodeBanque() {
+            const inputCode = document.getElementById("agency-password-field").value.trim();
+            if (inputCode === "") { alert("⚠️ Saisissez votre code."); return; }
+            try {
+                const response = await fetch("/api/admin/login", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code_securite: inputCode })
+                });
+                const result = await response.json();
+                if (!response.ok) { throw new Error(result.detail || "Erreur d'accès."); }
+
+                localStorage.setItem("cfg_banque", result.banque_nom);
+                localStorage.setItem("cfg_agence", result.agence_nom);
+                localStorage.setItem("cfg_localite", result.localite);
+                localStorage.setItem("cfg_arrondissement", result.arrondissement);
+                localStorage.setItem("cfg_departement", result.departement);
+                localStorage.setItem("cfg_region", result.region);
+
+                document.getElementById("auth-container").style.display = "none";
+                document.getElementById("protected-content").style.display = "block";
+                
+                document.getElementById("title-banque").innerText = result.banque_nom;
+                document.getElementById("subtitle-agence").innerText = "Agence de " + result.agence_nom + " — Département de la " + result.departement + " (" + result.region + ")";
+                
+                chargerClients();
+            } catch (error) {
+                alert(error.message);
+                document.getElementById("agency-password-field").value = "";
+            }
+        }
+    </script>
 </head>
 <body>
-
-    <!-- 🔑 ÉCRAN D'AUTHENTIFICATION DE L'AGRONOME -->
-    <div id="auth-agronome">
-        <h2 style="color: #166534; font-size: 20px; margin-top: 0; margin-bottom: 5px;">🌱 Portail Directeur Agronome</h2>
-        <p style="color: #64748b; font-size: 12px; margin-bottom: 25px;">Académie AgroCrédit Suivi — Administration Technique</p>
-        <input type="password" id="agronome-token-field" placeholder="Entrez le jeton d'accès d'expert" style="margin-bottom: 20px;" onkeydown="if(event.key === 'Enter') connecterAgronome()">
-        <button onclick="connecterAgronome()" class="btn">Se connecter à la Base de Connaissances</button>
+    <div id="auth-container">
+        <h2 style="color: #1e293b; font-size: 20px; margin-top: 0; margin-bottom: 5px;">🏦 Portail Banque Sécurisé</h2>
+        <p style="color: #64748b; font-size: 12px; margin-bottom: 25px;">AgroCrédit Suivi — Édition Logicielle Universelle</p>
+        <input type="password" id="agency-password-field" placeholder="Entrez le mot de passe" style="margin-bottom: 20px;" onkeydown="if(event.key === 'Enter') validerCodeBanque()">
+        <button onclick="validerCodeBanque()" class="btn" style="background-color: #1e293b;">Se connecter au Portefeuille</button>
     </div>
-
-    <!-- 🌐 ZONE SÉCURISÉE DE GOUVERNANCE TECHNIQUE -->
-    <div id="protected-agronome">
-        <!-- 🔥 REMPLACEZ LA BALISE NAV DANS admin.html POUR FIXER LES ADRESSES UNIQUE : -->
-        <!-- 🏦 BARRE DE NAVIGATION BANQUE - SÉCURISÉE ET ENTIÈREMENT DISSOCIÉE DE L'ACADÉMIE -->
+    <div id="protected-content">
         <nav>
             <div>
                 <h1 style="margin: 0; font-size: 18px;">🏦 <span id="title-banque">...</span> — AgroCrédit Suivi</h1>
                 <small style="opacity: 0.8;" id="subtitle-agence">...</small>
             </div>
             <div style="display: flex; gap: 10px;">
-                <!-- 📅 ACCÈS UNIQUEMENT AU RECOUVREMENT DES TRAITES DE L'AGENCE -->
                 <a href="/recouvrement" style="background-color: #2563eb; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; text-decoration: none; display: flex; align-items: center;">📅 Suivi Remboursements</a>
-                
-                <!-- 📊 REPORING ET IMPRESSION PORTEFEUILLE COMPTABLE -->
                 <button onclick="exporterVersExcel()" style="background-color: #10b981; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">📊 Exporter Excel</button>
                 <button onclick="window.print()" style="background-color: #475569; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">🖨️ Imprimer PDF</button>
                 <button onclick="chargerClients()" class="btn-refresh">🔄 Actualiser</button>
@@ -50,134 +81,166 @@
         </nav>
 
         <main>
-            <!-- Formulaire de publication de cours -->
+            <!-- Formulaire d'inscription -->
             <div class="card">
-                <h3 style="margin-top: 0; color: #166534; font-size: 15px;">📝 Publier un Guide de Vulgarisation</h3>
-                <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Injectez une nouvelle fiche technique en direct dans les téléphones des producteurs.</p>
+                <h3 style="margin-top:0; color: #1e293b; font-size: 15px;">👤 Inscrire un Agriculteur</h3>
+                <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Ouvrez un dossier d'accompagnement pour un nouveau producteur éligible.</p>
                 
-                <label style="font-size: 12px; font-weight: bold; color: #475569;">Clé système de la spéculation</label>
-                <select id="course-cle">
-                    <option value="poulet">Poulet de chair (Élevage)</option>
-                    <option value="peste">Porc engraisseur (Élevage)</option>
-                    <option value="pisciculture">Pisciculture (Poisson)</option>
-                    <option value="mais">Culture de Maïs</option>
-                    <option value="plantain">Bananier plantain</option>
-                    <option value="cacao">Cacao (Entretien/Production)</option>
-                    <option value="manioc">Transformation du Manioc</option>
+                <label style="font-size: 12px; font-weight: bold; color: #475569;">Nom complet du producteur</label>
+                <input type="text" id="reg-name" placeholder="Ex: Isaac Tonfo">
+                
+                <label style="font-size: 12px; font-weight: bold; color: #475569;">Adresse Email / Contact</label>
+                <input type="email" id="reg-email" placeholder="Ex: isaac@gmail.com">
+                
+                <label style="font-size: 12px; font-weight: bold; color: #475569;">Spéculation Agropastorale</label>
+                <select id="reg-filiere">
+                    <option value="Poulet de chair">Poulet de chair (Élevage - 45 jours)</option>
+                    <option value="Porc engraisseur">Porc engraisseur (Élevage)</option>
+                    <option value="Pisciculture">Pisciculture (Poisson)</option>
+                    <option value="Maïs">Culture de Maïs</option>
+                    <option value="Bananier plantain">Bananier plantain</option>
+                    <option value="Cacao">Cacao (Entretien/Production)</option>
+                    <option value="Manioc">Transformation du Manioc</option>
                 </select>
-
-                <label style="font-size: 12px; font-weight: bold; color: #475569;">Titre officiel de la fiche (Avec Émoji)</label>
-                <input type="text" id="course-titre" placeholder="Ex: 🍫 Cacao : Traitement Fongicide">
-
-                <label style="font-size: 12px; font-weight: bold; color: #475569;">Résumé succinct de l'assistance</label>
-                <input type="text" id="course-desc" placeholder="Ex: Optimisation des rendements face à la pourriture brune.">
-
-                <label style="font-size: 12px; font-weight: bold; color: #475569;">Contenu détaillé du protocole agropastoral</label>
-                <textarea id="course-contenu" rows="6" placeholder="Rédigez les étapes claires (1, 2, 3...) adaptées au sol de la Vallée-du-Ntem..."></textarea>
-
-                <button onclick="publierNouveauGuide()" class="btn">💾 Diffuser la Fiche Technique</button>
+                
+                <label style="font-size: 12px; font-weight: bold; color: #475569;">Type de Garantie d'Octroi</label>
+                <select id="reg-garantie-type">
+                    <option value="Caution Fonctionnaire">Caution Solidaire (Fonctionnaire)</option>
+                    <option value="Nantissement Matériel">Nantissement Matériel</option>
+                    <option value="Garantie Réelle">Garantie Réelle (Titre Foncier)</option>
+                    <option value="Garantie Morale">Garantie Morale</option>
+                </select>
+                
+                <label style="font-size: 12px; font-weight: bold; color: #475569;">Détails & Preuves de la Garantie</label>
+                <input type="text" id="reg-garantie-details" placeholder="Ex: Aval de M. Ndong">
+                
+                <button onclick="enregistrerAgriculteur()" class="btn" style="margin-top: 15px;">Créer le compte d'accompagnement</button>
             </div>
-            <!-- Index des fiches actives en base SQLite -->
+
+            <!-- Tableau global -->
             <div class="card">
-                <h3 style="margin-top: 0; color: #0f172a; font-size: 15px;">📋 Index des Connaissances Diffusées</h3>
+                <h3 style="margin-top: 0; color: #1e293b; font-size: 15px;">📋 Portefeuille Clients & Droits</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th>Clé</th>
-                            <th>Titre de la Fiche Technique</th>
-                            <th>Description Générale de l'Appui</th>
+                            <th>ID</th>
+                            <th>Nom du Producteur</th>
+                            <th>Spéculation</th>
+                            <th>Total Épargné</th>
+                            <th>Vulgarisation & Télé-Conseil (25%)</th>
+                            <th>Crédit Levier (85%)</th>
+                            <th>Analyse</th>
                         </tr>
                     </thead>
-                    <tbody id="table-cours-body">
+                    <tbody id="table-clients-body">
                         <tr>
-                            <td colspan="3" style="text-align: center; color: #94a3b8; font-style: italic;">Chargement du catalogue...</td>
+                            <td colspan="7" style="text-align: center; color: #94a3b8; font-style: italic;">Chargement des données...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+
+            <!-- Canevas Projet Bancable -->
+            <div class="card" style="background-color: #fafafa; border: 1px dashed #cbd5e1;">
+                <h3 style="margin-top:0; color: #1e293b; font-size: 15px;">📋 Canevas Projet Bancable</h3>
+                <div id="evaluation-content" style="font-size: 12px; margin-top: 15px; color: #475569; font-style: italic;">
+                    Aucun projet sélectionné.
+                </div>
+            </div>
         </main>
     </div>
-
     <script>
-        // Jeton fixe exclusif pour le Directeur Général / Expert Agronome de l'Académie
-        const JETON_EXPERT = "AGRO-EXPERT-2026";
-
-        function connecterAgronome() {
-            const token = document.getElementById("agronome-token-field").value.trim();
-            if (token !== JETON_EXPERT) {
-                alert("❌ Jeton d'expert agronome invalide ou révoqué par la Holding.");
-                document.getElementById("agronome-token-field").value = "";
-                return;
-            }
-            document.getElementById("auth-agronome").style.display = "none";
-            document.getElementById("protected-agronome").style.display = "block";
-            chargerCatalogueCours();
-        }
-
-        function deconnecterAgronome() {
-            document.getElementById("agronome-token-field").value = "";
-            document.getElementById("protected-agronome").style.display = "none";
-            document.getElementById("auth-agronome").style.display = "block";
-        }
-
-        // Récupérer dynamiquement les cours depuis la table SQLite de Render
-        async function chargerCatalogueCours() {
-            const tbody = document.getElementById("table-cours-body");
+        async function chargerClients() {
+            const tbody = document.getElementById('table-clients-body');
+            const banque = localStorage.getItem("cfg_banque") || "La Régionale";
+            const agence = localStorage.getItem("cfg_agence") || "Ambam";
             try {
-                const response = await fetch("/api/academie/cours");
+                const response = await fetch(serverUrl + "/api/admin/clients?banque=" + encodeURIComponent(banque) + "&agence=" + encodeURIComponent(agence));
                 const data = await response.json();
-                
-                tbody.innerHTML = "";
-                const cles = Object.keys(data);
-                
-                if (cles.length > 0) {
-                    cles.forEach(cle => {
-                        tbody.innerHTML += `
-                            <tr>
-                                <td><span style="font-family:monospace; font-weight:bold; background:#e0fdf4; padding:2px 6px; border-radius:4px; color:#166534;">${cle}</span></td>
-                                <td><strong>${data[cle].titre}</strong></td>
-                                <td style="color:#475569;">${data[cle].description}</td>
-                            </tr>
-                        `;
+                if (data.clients && data.clients.length > 0) {
+                    tbody.innerHTML = "";
+                    data.clients.forEach(client => {
+                        const nombreDeMois = Math.floor(client.total_epargne / 20000);
+                        const fraisTeleConseil = nombreDeMois * 5000;
+                        const epargneNette = client.total_epargne - fraisTeleConseil;
+                        const droitCredit = epargneNette > 0 ? Math.floor((epargneNette / 0.15) * 0.85) : 0;
+                        tbody.innerHTML += "<tr><td>#0" + client.id + "</td><td><strong>" + client.full_name + "</strong><br><small>" + client.email + "</small></td><td>" + client.filiere + "</td><td>" + client.total_epargne.toLocaleString('fr-FR') + " CFA</td><td><span class='badge-frais'>-" + fraisTeleConseil.toLocaleString('fr-FR') + " CFA</span></td><td style='font-weight:bold;color:#166534;background-color:#f0fdf4;'>" + droitCredit.toLocaleString('fr-FR') + " CFA</td><td><button onclick='analyserProjet(\"" + client.id + "\")' class='btn-eval'>📊 Évaluer</button></td></tr>";
                     });
                 } else {
-                    tbody.innerHTML = "<tr><td colspan='3' style='text-align:center; color:#94a3b8;'>Aucun cours en base.</td></tr>";
+                    tbody.innerHTML = "<tr><td colspan='7' style='text-align: center; color: #94a3b8; padding:20px 0;'>Aucun agriculteur enregistré pour l'agence de " + agence + ".</td></tr>";
                 }
             } catch (error) {
-                tbody.innerHTML = "<tr><td colspan='3' style='text-align:center; color:#b91c1c;'>⚠️ Échec de connexion au serveur.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='7' style='text-align: center; color: #b91c1c; padding:20px 0;'>⚠️ Erreur de liaison base de données.</td></tr>";
             }
         }
 
-        // Publier un nouveau cours avec double confirmation de sécurité
-        async function publierNouveauGuide() {
-            const cle = document.getElementById("course-cle").value;
-            const titre = document.getElementById("course-titre").value.trim();
-            const desc = document.getElementById("course-desc").value.trim();
-            const contenu = document.getElementById("course-contenu").value.trim();
-
-            if (titre === "" || desc === "" || contenu === "") {
-                alert("⚠️ Veuillez remplir tous les champs du protocole technique.");
-                return;
+        async function enregistrerAgriculteur() {
+            const nameInput = document.getElementById('reg-name');
+            const emailInput = document.getElementById('reg-email');
+            const filiereInput = document.getElementById('reg-filiere');
+            const garantieTypeInput = document.getElementById('reg-garantie-type');
+            const garantieDetailsInput = document.getElementById('reg-garantie-details');
+            const boutonSoumission = document.querySelector(".card .btn");
+            if (nameInput.value.trim() === "" || emailInput.value.trim() === "" || garantieDetailsInput.value.trim() === "") {
+                alert("⚠️ Veuillez remplir tous les champs."); return;
             }
-
-            const confirmation = confirm(`🌱 CONFIRMATION DE DIFFUSION NUMÉRIQUE :\n\nVoulez-vous publier la fiche "${titre}" ?\n\nElle sera instantanément injectée dans les terminaux mobiles de tous les producteurs de la filière.`);
+            const confirmation = confirm(`👤 CONFIRMATION D'OUVERTURE DE DOSSIER :\n\nVoulez-vous inscrire le producteur ${nameInput.value.trim().toUpperCase()} pour la filière ${filiereInput.value} ?\n\nCliquez sur OK pour confirmer ou sur Annuler pour modifier.`);
             if (!confirmation) return;
-
             try {
-                const response = await fetch("/api/academie/publier", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cle: cle, titre: titre, description: desc, contenu: contenu })
+                boutonSoumission.disabled = true;
+                const response = await fetch(serverUrl + "/api/register", {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        full_name: nameInput.value.trim(), email: emailInput.value.trim(), filiere: filiereInput.value, garantie_type: garantieTypeInput.value, garantie_details: garantieDetailsInput.value.trim(),
+                        banque_nom: localStorage.getItem("cfg_banque") || "La Régionale", agence_nom: localStorage.getItem("cfg_agence") || "Ambam", localite: localStorage.getItem("cfg_localite") || "Ambam", arrondissement: localStorage.getItem("cfg_arrondissement") || "Ambam", departement: localStorage.getItem("cfg_departement") || "Vallée-du-Ntem", region: localStorage.getItem("cfg_region") || "Sud"
+                    })
                 });
-
                 if (response.ok) {
-                    alert("✅ Fiche technique diffusée avec succès sur le réseau de la Vallée-du-Ntem !");
-                    document.getElementById("course-titre").value = "";
-                    document.getElementById("course-desc").value = "";
-                    document.getElementById("course-contenu").value = "";
-                    chargerCatalogueCours();
-                } else { alert("❌ Échec d'écriture."); }
-            } catch (error) { alert("❌ Erreur de liaison réseau."); }
+                    alert("✅ Agriculteur inscrit avec succès !"); 
+                    nameInput.value = ""; emailInput.value = ""; garantieDetailsInput.value = ""; 
+                    chargerClients();
+                } else { alert("❌ Échec de l'inscription."); }
+            } catch (e) { alert("❌ Erreur de connexion."); } finally { boutonSoumission.disabled = false; }
+        }
+
+        async function analyserProjet(clientId) {
+            const contentBox = document.getElementById('evaluation-content');
+            contentBox.innerHTML = "<p>Calcul de l'échéancier...</p>";
+            try {
+                const response = await fetch(serverUrl + "/api/admin/evaluation/" + clientId);
+                const data = await response.json();
+                contentBox.innerHTML = `
+                    <div style='background:white;padding:15px;border-radius:8px;border:1px solid #e2e8f0;border-top:4px solid #2563eb;line-height:1.6;'>
+                        <h4 style='margin:0 0 10px 0;text-transform:uppercase;'>📊 DOSSIER BANCABLE — ${data.banque_nom}</h4>
+                        <p style='font-size:11px;color:#64748b;'>Agence de ${data.agence_nom}</p>
+                        <hr style='border:0;border-top:1px solid #e2e8f0;margin:8px 0;'>
+                        <p><strong>Nom du Producteur :</strong> ${data.client_name}</p>
+                        <p><strong>Spéculation :</strong> ${data.speculation}</p>
+                        <hr style='border:0;border-top:1px solid #e2e8f0;margin:8px 0;'>
+                        <p><strong>Garantie :</strong> ${data.garantie_type}</p>
+                        <p style='font-size:11px;background:#f8fafc;padding:6px;border-radius:4px;'>📝 ${data.garantie_details}</p>
+                        <hr style='border:0;border-top:1px solid #e2e8f0;margin:8px 0;'>
+                        <p><strong>Épargne Nette Bloquée (15%) :</strong> ${data.apport_epargne_nette.toLocaleString('fr-FR')} CFA</p>
+                        <p><strong>Crédit Levier Alloué (85%) :</strong> <strong style='color:#166534;'>${data.credit_sollicite_banque.toLocaleString('fr-FR')} CFA</strong></p>
+                        <hr style='border:0;border-top:1px solid #e2e8f0;margin:8px 0;'>
+                        <p style='font-weight:bold;color:#2563eb;'>📅 PLAN DE REMBOURSEMENT COBAC :</p>
+                        <div style='background:#f0fdf4;padding:10px;border-radius:6px;border:1px solid #bbf7d0;font-size:11px;'>
+                            <p>Durée du Contrat : <strong>${data.duree_mois} mois</strong></p>
+                            <p style='color:#c2410c;font-weight:bold;'>⚠️ Différé Biologique : Mois 1 & Mois 2 (0 CFA)</p>
+                            <p style='font-size:12px;color:#166534;font-weight:bold;'>👉 Traite Mensuelle (Mois 3 à 12) : ${data.mensualite.toLocaleString('fr-FR')} CFA / mois</p>
+                            <p style='color:#64748b;font-size:10px;'>Coût Total des Intérêts (${data.taux_annuel}) : ${data.total_interets.toLocaleString('fr-FR')} CFA</p>
+                        </div>
+                        <div style='margin-top:15px;background:#dcfce7;color:#15803d;padding:8px;text-align:center;font-weight:bold;border-radius:6px;font-size:11px;'>🎯 NOTE GLOBALE : ${data.statut_projet}</div>
+                    </div>`;
+            } catch (error) { contentBox.innerHTML = "<p>⚠️ Échec du calcul de l'échéancier.</p>"; }
+        }
+
+        function exporterVersExcel() {
+            const table = document.querySelector("table");
+            if (!table || table.rows.length <= 2) { alert("⚠️ Aucun compte à exporter."); return; }
+            let html = table.outerHTML;
+            const blob = new Blob(["<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:x='urn:schemas-microsoft-com:office:excel' xmlns='http://w3.org'><head><meta charset='utf-8'></head><body>" + html + "</body></html>"], { type: "application/vnd.ms-excel" });
+            const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "Portefeuille_" + localStorage.getItem("cfg_banque") + "_" + localStorage.getItem("cfg_agence") + ".xls"; document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
     </script>
 </body>
